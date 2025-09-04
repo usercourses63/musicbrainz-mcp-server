@@ -555,3 +555,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️ for the music community
+[![smithery badge](https://smithery.ai/badge/@usercourses63/musicbrainz-mcp-server)](https://smithery.ai/server/@usercourses63/musicbrainz-mcp-server)
