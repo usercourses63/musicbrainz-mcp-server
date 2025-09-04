@@ -731,10 +731,18 @@ def main():
 
             # Add health check endpoint
             from starlette.responses import JSONResponse
+            from starlette.routing import Route
 
-            @app.route("/health", methods=["GET"])
             async def health_check(request):
-                return JSONResponse({"status": "healthy", "service": "MusicBrainz MCP Server"})
+                return JSONResponse({
+                    "status": "healthy",
+                    "service": "MusicBrainz MCP Server",
+                    "version": "1.1.0",
+                    "tools_count": 10
+                })
+
+            # Add health route to the app
+            app.routes.append(Route("/health", health_check, methods=["GET"]))
 
             # Add CORS middleware for browser-based clients
             app.add_middleware(
@@ -757,8 +765,22 @@ def main():
             # Add configuration middleware to parse query parameters
             app.add_middleware(ConfigurationMiddleware)
 
-            # Run with uvicorn
-            uvicorn.run(app, host="0.0.0.0", port=int(port), log_level="info")
+            # Configure uvicorn with proper settings for container deployment
+            config = uvicorn.Config(
+                app=app,
+                host="0.0.0.0",
+                port=int(port),
+                log_level="info",
+                access_log=True,
+                server_header=False,
+                date_header=False,
+                loop="asyncio"
+            )
+
+            # Create and run server with proper lifecycle management
+            server = uvicorn.Server(config)
+            logger.info(f"Server configured for port {port}, starting...")
+            server.run()
         else:
             # STDIO transport for local development and Claude Desktop
             logger.info("Starting with STDIO transport")
