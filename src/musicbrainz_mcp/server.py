@@ -11,8 +11,10 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
+import uvicorn
 from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
+from starlette.middleware.cors import CORSMiddleware
 
 from .musicbrainz_client import MusicBrainzClient
 from .models import Artist, Release, Recording, ReleaseGroup, SearchResult, BrowseResult
@@ -30,21 +32,35 @@ mcp = FastMCP("MusicBrainz MCP Server")
 _client: Optional[MusicBrainzClient] = None
 
 
-async def get_client() -> MusicBrainzClient:
-    """Get or create the global MusicBrainz client instance."""
+def configure_client_from_env():
+    """Configure the MusicBrainz client from environment variables and query parameters."""
     global _client
+
+    # Get configuration from environment variables
+    user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", "MusicBrainzMCP/1.0.0")
+    rate_limit = float(os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0"))
+    timeout = float(os.getenv("MUSICBRAINZ_TIMEOUT", "30.0"))
+
+    # For HTTP mode, configuration might come from query parameters
+    # This will be handled by the FastMCP framework automatically
+
     if _client is None:
-        user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", "MusicBrainzMCP/0.1.0")
-        rate_limit = float(os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0"))
-        timeout = float(os.getenv("MUSICBRAINZ_TIMEOUT", "30.0"))
-        
         _client = MusicBrainzClient(
             user_agent=user_agent,
             rate_limit=rate_limit,
             timeout=timeout
         )
+
+    return _client
+
+
+async def get_client() -> MusicBrainzClient:
+    """Get or create the global MusicBrainz client instance."""
+    global _client
+    if _client is None:
+        _client = configure_client_from_env()
         await _client.__aenter__()
-    
+
     return _client
 
 
@@ -577,8 +593,9 @@ def main():
     """
     Main entry point for the MusicBrainz MCP server.
 
-    This function starts the server with the default STDIO transport,
-    making it suitable for use with MCP clients like Claude Desktop.
+    This function starts the server with the appropriate transport based on environment:
+    - HTTP transport for deployment platforms like smithery.ai (when PORT is set)
+    - STDIO transport for local development and Claude Desktop integration
     """
     try:
         logger.info("Starting MusicBrainz MCP Server...")
@@ -594,8 +611,39 @@ def main():
         logger.info("  - browse_artist_recordings: Browse recordings by artist")
         logger.info("  - lookup_by_mbid: Generic lookup by MBID")
 
-        # Run the server with STDIO transport (default for MCP)
-        mcp.run()
+        # Check if we should use HTTP transport (for deployment platforms)
+        port = os.getenv("PORT")
+        if port:
+            # HTTP transport for deployment platforms like smithery.ai
+            logger.info(f"Starting HTTP server on port {port}")
+
+            # Setup Starlette app with CORS for cross-origin requests
+            app = mcp.streamable_http_app()
+
+            # Add health check endpoint
+            from starlette.responses import JSONResponse
+
+            @app.route("/health", methods=["GET"])
+            async def health_check(request):
+                return JSONResponse({"status": "healthy", "service": "MusicBrainz MCP Server"})
+
+            # Add CORS middleware for browser-based clients
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["GET", "POST", "OPTIONS"],
+                allow_headers=["*"],
+                expose_headers=["mcp-session-id", "mcp-protocol-version"],
+                max_age=86400,
+            )
+
+            # Run with uvicorn
+            uvicorn.run(app, host="0.0.0.0", port=int(port), log_level="info")
+        else:
+            # STDIO transport for local development and Claude Desktop
+            logger.info("Starting with STDIO transport")
+            mcp.run()
 
     except KeyboardInterrupt:
         logger.info("Server interrupted by user")

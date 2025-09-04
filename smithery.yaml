@@ -1,0 +1,62 @@
+# Smithery.ai deployment configuration for MusicBrainz MCP Server
+runtime: "container"
+
+startCommand:
+  type: "http"
+  configSchema:
+    type: "object"
+    required: ["user_agent"]
+    properties:
+      user_agent:
+        type: "string"
+        title: "User Agent"
+        description: "Required user agent string for MusicBrainz API compliance (format: AppName/Version (contact@email.com))"
+        pattern: "^.+/.+ \\(.+@.+\\)$"
+        examples: ["MyApp/1.0.0 (contact@example.com)"]
+      rate_limit:
+        type: "number"
+        title: "Rate Limit"
+        description: "API rate limit in requests per second (default: 1.0, max: 2.0)"
+        default: 1.0
+        minimum: 0.1
+        maximum: 2.0
+      timeout:
+        type: "number"
+        title: "Request Timeout"
+        description: "API request timeout in seconds (default: 30.0)"
+        default: 30.0
+        minimum: 5.0
+        maximum: 120.0
+      cache_enabled:
+        type: "boolean"
+        title: "Enable Caching"
+        description: "Enable in-memory caching for better performance (default: true)"
+        default: true
+      cache_ttl:
+        type: "integer"
+        title: "Cache TTL"
+        description: "Cache time-to-live in seconds (default: 300)"
+        default: 300
+        minimum: 60
+        maximum: 3600
+      debug:
+        type: "boolean"
+        title: "Debug Mode"
+        description: "Enable debug logging (default: false)"
+        default: false
+  exampleConfig:
+    user_agent: "SmitheryMusicBrainz/1.0.0 (demo@smithery.ai)"
+    rate_limit: 1.0
+    timeout: 30.0
+    cache_enabled: true
+    cache_ttl: 300
+    debug: false
+
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
+
+env:
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  LOG_LEVEL: "INFO"
