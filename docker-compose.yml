@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  musicbrainz-mcp:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MUSICBRAINZ_USER_AGENT=DockerMusicBrainzMCP/1.0.0
+      - MUSICBRAINZ_RATE_LIMIT=1.0
+      - MUSICBRAINZ_TIMEOUT=10.0
+      - CACHE_ENABLED=true
+      - CACHE_DEFAULT_TTL=300
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./config.json:/app/config.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development service with hot reload
+  musicbrainz-mcp-dev:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - MUSICBRAINZ_USER_AGENT=DevMusicBrainzMCP/1.0.0
+      - MUSICBRAINZ_RATE_LIMIT=2.0
+      - MUSICBRAINZ_TIMEOUT=5.0
+      - CACHE_ENABLED=false
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./config.json:/app/config.json:ro
+    command: ["python", "-m", "musicbrainz_mcp.main", "--reload"]
+    profiles:
+      - dev

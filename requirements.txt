@@ -1,0 +1,22 @@
+# Core dependencies for MusicBrainz MCP Server
+# Install with: pip install -r requirements.txt
+
+fastmcp>=2.0.0
+httpx>=0.25.0
+pydantic>=2.0.0
+asyncio-throttle>=1.0.0
+typing-extensions>=4.0.0
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-html>=3.2.0
+pytest-timeout>=2.1.0
+pytest-xdist>=3.3.0
+
+# Development dependencies
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.5.0
+pre-commit>=3.3.0

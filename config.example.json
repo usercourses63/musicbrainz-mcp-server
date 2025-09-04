@@ -1,0 +1,44 @@
+{
+  "api": {
+    "base_url": "https://musicbrainz.org/ws/2",
+    "user_agent": "MusicBrainzMCP/0.1.0",
+    "rate_limit": 1.0,
+    "timeout": 30.0,
+    "max_retries": 3,
+    "retry_delay": 1.0
+  },
+  "cache": {
+    "enabled": true,
+    "default_ttl": 300,
+    "max_entries": 1000,
+    "cleanup_interval": 60,
+    "search_ttl": 300,
+    "lookup_ttl": 3600,
+    "browse_ttl": 600
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "date_format": "%Y-%m-%d %H:%M:%S",
+    "log_to_file": false,
+    "log_file": null,
+    "max_file_size": 10485760,
+    "backup_count": 5,
+    "log_to_console": true
+  },
+  "server": {
+    "name": "MusicBrainz MCP Server",
+    "version": "0.1.0",
+    "description": "MCP server for querying the MusicBrainz database",
+    "transport": "stdio",
+    "host": "127.0.0.1",
+    "port": 8000,
+    "path": "/mcp",
+    "max_search_limit": 100,
+    "default_search_limit": 25,
+    "max_browse_limit": 100,
+    "default_browse_limit": 25
+  },
+  "debug": false,
+  "environment": "production"
+}

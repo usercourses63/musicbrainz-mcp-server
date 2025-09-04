@@ -1,0 +1,38 @@
+site_name: MusicBrainz MCP Server
+site_description: MCP Server for querying the MusicBrainz database
+site_url: https://github.com/yourusername/musicbrainz-mcp
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - API Reference: api_reference.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
