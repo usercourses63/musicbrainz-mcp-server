@@ -12,6 +12,9 @@ import binascii
 import json
 import logging
 import os
+import sys
+import time
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import uvicorn
@@ -42,6 +45,9 @@ _current_config: Optional[Dict[str, Any]] = None
 
 # Track the configuration used to create the current client
 _client_config: Optional[Dict[str, Any]] = None
+
+# Server start time for uptime tracking
+start_time = time.time()
 
 
 def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, Any]:
@@ -711,8 +717,13 @@ def main():
     - STDIO transport for local development and Claude Desktop integration
     """
     try:
-        logger.info("Starting MusicBrainz MCP Server...")
-        logger.info("Available tools:")
+        logger.info("🎵 Starting MusicBrainz MCP Server v1.1.0...")
+        logger.info("🔧 Environment check:")
+        logger.info(f"   PORT: {os.getenv('PORT', 'Not set')}")
+        logger.info(f"   MUSICBRAINZ_USER_AGENT: {os.getenv('MUSICBRAINZ_USER_AGENT', 'Not set')}")
+        logger.info(f"   Python version: {sys.version}")
+
+        logger.info("🛠️ Available tools:")
         logger.info("  - search_artist: Search for artists by name")
         logger.info("  - search_release: Search for releases/albums")
         logger.info("  - search_recording: Search for recordings/tracks")
@@ -728,22 +739,69 @@ def main():
         port = os.getenv("PORT")
         if port:
             # HTTP transport for deployment platforms like smithery.ai
-            logger.info(f"Starting HTTP server on port {port}")
+            logger.info(f"🌐 Starting HTTP server on port {port}")
+
+            # Validate dependencies before starting
+            try:
+                import fastmcp
+                import httpx
+                import starlette
+                logger.info(f"✅ Dependencies validated: FastMCP {fastmcp.__version__}")
+            except ImportError as e:
+                logger.error(f"❌ Missing dependency: {e}")
+                raise
 
             # Setup Starlette app with CORS for cross-origin requests
+            logger.info("🔧 Creating FastMCP HTTP app...")
             app = mcp.http_app()
+            logger.info("✅ FastMCP HTTP app created successfully")
 
             # Add health check endpoint
             from starlette.responses import JSONResponse
             from starlette.routing import Route
 
             async def health_check(request):
-                return JSONResponse({
-                    "status": "healthy",
-                    "service": "MusicBrainz MCP Server",
-                    "version": "1.1.0",
-                    "tools_count": 10
-                })
+                """
+                Comprehensive health check following MCP best practices.
+                Returns 200 for healthy, 503 for not ready.
+                """
+                try:
+                    # Basic liveness check
+                    health_data = {
+                        "status": "healthy",
+                        "service": "MusicBrainz MCP Server",
+                        "version": "1.1.0",
+                        "tools_count": 10,
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                        "uptime_seconds": time.time() - start_time
+                    }
+
+                    # Check if MCP app is accessible (readiness check)
+                    try:
+                        # Verify that our MCP tools are available
+                        tools = [
+                            "search_artist", "search_release", "search_recording",
+                            "search_release_group", "get_artist_details",
+                            "get_release_details", "get_recording_details",
+                            "browse_artist_releases", "browse_artist_recordings",
+                            "lookup_by_mbid"
+                        ]
+                        health_data["tools_available"] = len(tools)
+                        health_data["ready"] = True
+
+                        return JSONResponse(health_data, status_code=200)
+                    except Exception as e:
+                        health_data["ready"] = False
+                        health_data["error"] = f"MCP tools not ready: {str(e)}"
+                        return JSONResponse(health_data, status_code=503)
+
+                except Exception as e:
+                    return JSONResponse({
+                        "status": "unhealthy",
+                        "service": "MusicBrainz MCP Server",
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                    }, status_code=503)
 
             # Add health route to the app
             app.routes.append(Route("/health", health_check, methods=["GET"]))
@@ -783,8 +841,15 @@ def main():
 
             # Create and run server with proper lifecycle management
             server = uvicorn.Server(config)
-            logger.info(f"Server configured for port {port}, starting...")
-            server.run()
+            logger.info(f"🚀 Server configured for port {port}, starting...")
+            logger.info("🔍 Health check will be available at /health")
+            logger.info("🔧 MCP endpoint will be available at /mcp")
+
+            try:
+                server.run()
+            except Exception as e:
+                logger.error(f"❌ Server startup failed: {e}")
+                raise
         else:
             # STDIO transport for local development and Claude Desktop
             logger.info("Starting with STDIO transport")

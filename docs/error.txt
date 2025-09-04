@@ -2,34 +2,35 @@ Using smithery.yaml from repository
 Using Dockerfile from repository
 Successfully obtained required build config files. Preparing build...
 Building Docker image...
-#5 transferring dockerfile:
+#5 transferring dockerfile: 39B 0.1s
 #5 transferring dockerfile: 3.74kB 0.2s done
 #5 DONE 0.3s
-#6 DONE 0.0s
+#6 DONE 0.4s
 #7 [internal] load metadata for docker.io/library/python:3.11-slim
-#7 DONE 0.5s
+#7 DONE 0.4s
 #8 [internal] load .dockerignore
-#8 transferring context: 0.1s
+#8 transferring context:
 #8 transferring context: 2B 0.1s done
 #8 DONE 0.2s
 #9 [internal] load build context
 #9 DONE 0.0s
 #10 [stage-1  1/17] FROM docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312
-#10 resolve docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312 0.0s done
-#10 DONE 0.0s
-#11 DONE 0.0s
+#10 resolve docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312
+#10 resolve docker.io/library/python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312 0.1s done
+#10 DONE 0.1s
+#11 DONE 0.1s
 #9 [internal] load build context
-#9 transferring context: 284.74kB 0.5s done
-#9 DONE 0.5s
-#11 CACHED
-#12 [stage-1  2/17] WORKDIR /app
+#9 transferring context: 313.25kB 0.5s done
+#9 DONE 0.7s
+#12 [stage-1  3/17] RUN apt-get update && apt-get install -y     gcc     && rm -rf /var/lib/apt/lists/*
 #12 CACHED
-#13 [stage-1  3/17] RUN apt-get update && apt-get install -y     gcc     && rm -rf /var/lib/apt/lists/*
+#13 [stage-1  4/17] COPY pyproject.toml .
 #13 CACHED
-#14 [stage-1  4/17] COPY pyproject.toml .
+#14 [stage-1  2/17] WORKDIR /app
 #14 CACHED
 #15 [stage-1  5/17] COPY README.md .
 #15 CACHED
+#11 CACHED
 #16 [stage-1  6/17] COPY src/ src/
 #16 DONE 0.1s
 #17 [stage-1  7/17] COPY tests/ tests/
@@ -37,259 +38,259 @@ Building Docker image...
 #18 [stage-1  8/17] COPY docs/ docs/
 #18 DONE 0.1s
 #19 [stage-1  9/17] RUN pip install --no-cache-dir -e .
-#19 1.756 Obtaining file:///app
-#19 1.759   Installing build dependencies: started
-#19 3.715   Installing build dependencies: finished with status 'done'
-#19 3.715   Checking if build backend supports build_editable: started
-#19 4.040   Checking if build backend supports build_editable: finished with status 'done'
-#19 4.041   Getting requirements to build editable: started
-#19 4.422   Getting requirements to build editable: finished with status 'done'
-#19 4.423   Preparing editable metadata (pyproject.toml): started
-#19 4.800   Preparing editable metadata (pyproject.toml): finished with status 'done'
-#19 4.863 Collecting fastmcp>=2.0.0 (from musicbrainz-mcp==0.1.0)
-#19 4.892   Downloading fastmcp-2.12.2-py3-none-any.whl.metadata (17 kB)
-#19 4.921 Collecting httpx>=0.25.0 (from musicbrainz-mcp==0.1.0)
-#19 4.929   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
-#19 5.034 Collecting pydantic>=2.0.0 (from musicbrainz-mcp==0.1.0)
-#19 5.042   Downloading pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)
-#19 5.050      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.0/68.0 kB 9.5 MB/s eta 0:00:00
-#19 5.076 Collecting asyncio-throttle>=1.0.0 (from musicbrainz-mcp==0.1.0)
-#19 5.084   Downloading asyncio_throttle-1.0.2-py3-none-any.whl.metadata (3.4 kB)
-#19 5.105 Collecting typing-extensions>=4.0.0 (from musicbrainz-mcp==0.1.0)
-#19 5.113   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
-#19 5.142 Collecting uvicorn>=0.24.0 (from musicbrainz-mcp==0.1.0)
-#19 5.149   Downloading uvicorn-0.35.0-py3-none-any.whl.metadata (6.5 kB)
-#19 5.175 Collecting authlib>=1.5.2 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.183   Downloading authlib-1.6.3-py2.py3-none-any.whl.metadata (1.6 kB)
-#19 5.214 Collecting cyclopts>=3.0.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.222   Downloading cyclopts-3.23.1-py3-none-any.whl.metadata (11 kB)
-#19 5.238 Collecting exceptiongroup>=1.2.2 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.246   Downloading exceptiongroup-1.3.0-py3-none-any.whl.metadata (6.7 kB)
-#19 5.268 Collecting mcp<2.0.0,>=1.12.4 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.277   Downloading mcp-1.13.1-py3-none-any.whl.metadata (74 kB)
-#19 5.278      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.7/74.7 kB 216.7 MB/s eta 0:00:00
-#19 5.308 Collecting openapi-core>=0.19.5 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.317   Downloading openapi_core-0.19.5-py3-none-any.whl.metadata (6.6 kB)
-#19 5.334 Collecting openapi-pydantic>=0.5.1 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.342   Downloading openapi_pydantic-0.5.1-py3-none-any.whl.metadata (10 kB)
-#19 5.366 Collecting pyperclip>=1.9.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 5.375   Downloading pyperclip-1.9.0.tar.gz (20 kB)
-#19 5.382   Preparing metadata (setup.py): started
-#19 6.000   Preparing metadata (setup.py): finished with status 'done'
-#19 6.020 Collecting python-dotenv>=1.1.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 6.028   Downloading python_dotenv-1.1.1-py3-none-any.whl.metadata (24 kB)
-#19 6.077 Collecting rich>=13.9.4 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 6.084   Downloading rich-14.1.0-py3-none-any.whl.metadata (18 kB)
-#19 6.128 Collecting anyio (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 6.136   Downloading anyio-4.10.0-py3-none-any.whl.metadata (4.0 kB)
-#19 6.156 Collecting certifi (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 6.164   Downloading certifi-2025.8.3-py3-none-any.whl.metadata (2.4 kB)
-#19 6.187 Collecting httpcore==1.* (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 6.195   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
-#19 6.212 Collecting idna (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 6.220   Downloading idna-3.10-py3-none-any.whl.metadata (10 kB)
-#19 6.238 Collecting h11>=0.16 (from httpcore==1.*->httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 6.245   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
-#19 6.267 Collecting annotated-types>=0.6.0 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 6.275   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
-#19 6.746 Collecting pydantic-core==2.33.2 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 6.753   Downloading pydantic_core-2.33.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
-#19 6.770 Collecting typing-inspection>=0.4.0 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 6.777   Downloading typing_inspection-0.4.1-py3-none-any.whl.metadata (2.6 kB)
-#19 6.809 Collecting click>=7.0 (from uvicorn>=0.24.0->musicbrainz-mcp==0.1.0)
-#19 6.816   Downloading click-8.2.1-py3-none-any.whl.metadata (2.5 kB)
-#19 6.990 Collecting cryptography (from authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 2.110 Obtaining file:///app
+#19 2.113   Installing build dependencies: started
+#19 4.026   Installing build dependencies: finished with status 'done'
+#19 4.026   Checking if build backend supports build_editable: started
+#19 4.349   Checking if build backend supports build_editable: finished with status 'done'
+#19 4.350   Getting requirements to build editable: started
+#19 4.735   Getting requirements to build editable: finished with status 'done'
+#19 4.736   Preparing editable metadata (pyproject.toml): started
+#19 5.115   Preparing editable metadata (pyproject.toml): finished with status 'done'
+#19 5.160 Collecting fastmcp>=2.0.0 (from musicbrainz-mcp==0.1.0)
+#19 5.172   Downloading fastmcp-2.12.2-py3-none-any.whl.metadata (17 kB)
+#19 5.192 Collecting httpx>=0.25.0 (from musicbrainz-mcp==0.1.0)
+#19 5.194   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#19 5.281 Collecting pydantic>=2.0.0 (from musicbrainz-mcp==0.1.0)
+#19 5.284   Downloading pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)
+#19 5.287      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.0/68.0 kB 54.1 MB/s eta 0:00:00
+#19 5.297 Collecting asyncio-throttle>=1.0.0 (from musicbrainz-mcp==0.1.0)
+#19 5.299   Downloading asyncio_throttle-1.0.2-py3-none-any.whl.metadata (3.4 kB)
+#19 5.314 Collecting typing-extensions>=4.0.0 (from musicbrainz-mcp==0.1.0)
+#19 5.317   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+#19 5.339 Collecting uvicorn>=0.24.0 (from musicbrainz-mcp==0.1.0)
+#19 5.342   Downloading uvicorn-0.35.0-py3-none-any.whl.metadata (6.5 kB)
+#19 5.361 Collecting authlib>=1.5.2 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.364   Downloading authlib-1.6.3-py2.py3-none-any.whl.metadata (1.6 kB)
+#19 5.387 Collecting cyclopts>=3.0.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.390   Downloading cyclopts-3.23.1-py3-none-any.whl.metadata (11 kB)
+#19 5.401 Collecting exceptiongroup>=1.2.2 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.403   Downloading exceptiongroup-1.3.0-py3-none-any.whl.metadata (6.7 kB)
+#19 5.419 Collecting mcp<2.0.0,>=1.12.4 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.422   Downloading mcp-1.13.1-py3-none-any.whl.metadata (74 kB)
+#19 5.424      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.7/74.7 kB 352.6 MB/s eta 0:00:00
+#19 5.446 Collecting openapi-core>=0.19.5 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.448   Downloading openapi_core-0.19.5-py3-none-any.whl.metadata (6.6 kB)
+#19 5.458 Collecting openapi-pydantic>=0.5.1 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.461   Downloading openapi_pydantic-0.5.1-py3-none-any.whl.metadata (10 kB)
+#19 5.478 Collecting pyperclip>=1.9.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 5.480   Downloading pyperclip-1.9.0.tar.gz (20 kB)
+#19 5.487   Preparing metadata (setup.py): started
+#19 6.138   Preparing metadata (setup.py): finished with status 'done'
+#19 6.151 Collecting python-dotenv>=1.1.0 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 6.154   Downloading python_dotenv-1.1.1-py3-none-any.whl.metadata (24 kB)
+#19 6.196 Collecting rich>=13.9.4 (from fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 6.198   Downloading rich-14.1.0-py3-none-any.whl.metadata (18 kB)
+#19 6.235 Collecting anyio (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 6.238   Downloading anyio-4.10.0-py3-none-any.whl.metadata (4.0 kB)
+#19 6.252 Collecting certifi (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 6.255   Downloading certifi-2025.8.3-py3-none-any.whl.metadata (2.4 kB)
+#19 6.272 Collecting httpcore==1.* (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 6.275   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#19 6.287 Collecting idna (from httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 6.289   Downloading idna-3.10-py3-none-any.whl.metadata (10 kB)
+#19 6.301 Collecting h11>=0.16 (from httpcore==1.*->httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 6.303   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#19 6.316 Collecting annotated-types>=0.6.0 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 6.318   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+#19 6.781 Collecting pydantic-core==2.33.2 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 6.784   Downloading pydantic_core-2.33.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
+#19 6.796 Collecting typing-inspection>=0.4.0 (from pydantic>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 6.799   Downloading typing_inspection-0.4.1-py3-none-any.whl.metadata (2.6 kB)
+#19 6.824 Collecting click>=7.0 (from uvicorn>=0.24.0->musicbrainz-mcp==0.1.0)
+#19 6.826   Downloading click-8.2.1-py3-none-any.whl.metadata (2.5 kB)
+#19 6.996 Collecting cryptography (from authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
 #19 6.999   Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
-#19 7.026 Collecting attrs>=23.1.0 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.033   Downloading attrs-25.3.0-py3-none-any.whl.metadata (10 kB)
-#19 7.059 Collecting docstring-parser>=0.15 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.067   Downloading docstring_parser-0.17.0-py3-none-any.whl.metadata (3.5 kB)
-#19 7.090 Collecting rich-rst<2.0.0,>=1.3.1 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.098   Downloading rich_rst-1.3.1-py3-none-any.whl.metadata (6.0 kB)
-#19 7.127 Collecting httpx-sse>=0.4 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.135   Downloading httpx_sse-0.4.1-py3-none-any.whl.metadata (9.4 kB)
-#19 7.165 Collecting jsonschema>=4.20.0 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.172   Downloading jsonschema-4.25.1-py3-none-any.whl.metadata (7.6 kB)
-#19 7.195 Collecting pydantic-settings>=2.5.2 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.203   Downloading pydantic_settings-2.10.1-py3-none-any.whl.metadata (3.4 kB)
-#19 7.228 Collecting python-multipart>=0.0.9 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.235   Downloading python_multipart-0.0.20-py3-none-any.whl.metadata (1.8 kB)
-#19 7.256 Collecting sse-starlette>=1.6.1 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.265   Downloading sse_starlette-3.0.2-py3-none-any.whl.metadata (11 kB)
-#19 7.297 Collecting starlette>=0.27 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.304   Downloading starlette-0.47.3-py3-none-any.whl.metadata (6.2 kB)
-#19 7.329 Collecting sniffio>=1.1 (from anyio->httpx>=0.25.0->musicbrainz-mcp==0.1.0)
-#19 7.344   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
-#19 7.373 Collecting isodate (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.381   Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
-#19 7.401 Collecting jsonschema-path<0.4.0,>=0.3.1 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.409   Downloading jsonschema_path-0.3.4-py3-none-any.whl.metadata (4.3 kB)
-#19 7.428 Collecting more-itertools (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.436   Downloading more_itertools-10.8.0-py3-none-any.whl.metadata (39 kB)
-#19 7.460 Collecting openapi-schema-validator<0.7.0,>=0.6.0 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.468   Downloading openapi_schema_validator-0.6.3-py3-none-any.whl.metadata (5.4 kB)
-#19 7.488 Collecting openapi-spec-validator<0.8.0,>=0.7.1 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.496   Downloading openapi_spec_validator-0.7.2-py3-none-any.whl.metadata (5.7 kB)
-#19 7.512 Collecting parse (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.519   Downloading parse-1.20.2-py2.py3-none-any.whl.metadata (22 kB)
-#19 7.551 Collecting werkzeug<3.1.2 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.561   Downloading werkzeug-3.1.1-py3-none-any.whl.metadata (3.7 kB)
-#19 7.595 Collecting email-validator>=2.0.0 (from pydantic[email]>=2.11.7->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.603   Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
-#19 7.631 Collecting markdown-it-py>=2.2.0 (from rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.639   Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
-#19 7.662 Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.670   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
-#19 7.727 Collecting dnspython>=2.0.0 (from email-validator>=2.0.0->pydantic[email]>=2.11.7->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.735   Downloading dnspython-2.7.0-py3-none-any.whl.metadata (5.8 kB)
-#19 7.768 Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.776   Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl.metadata (2.9 kB)
-#19 7.804 Collecting referencing>=0.28.4 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 7.811   Downloading referencing-0.36.2-py3-none-any.whl.metadata (2.8 kB)
-#19 8.051 Collecting rpds-py>=0.7.1 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.059   Downloading rpds_py-0.27.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)
-#19 8.096 Collecting PyYAML>=5.1 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.103   Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
-#19 8.120 Collecting pathable<0.5.0,>=0.4.1 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.128   Downloading pathable-0.4.4-py3-none-any.whl.metadata (1.8 kB)
-#19 8.161 Collecting requests<3.0.0,>=2.31.0 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.169   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
-#19 8.195 Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.203   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
-#19 8.227 Collecting rfc3339-validator (from openapi-schema-validator<0.7.0,>=0.6.0->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.235   Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl.metadata (1.5 kB)
-#19 8.272 Collecting lazy-object-proxy<2.0.0,>=1.7.1 (from openapi-spec-validator<0.8.0,>=0.7.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.280   Downloading lazy_object_proxy-1.12.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (5.1 kB)
-#19 8.321 Collecting docutils (from rich-rst<2.0.0,>=1.3.1->cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.329   Downloading docutils-0.22-py3-none-any.whl.metadata (15 kB)
-#19 8.409 Collecting MarkupSafe>=2.1.1 (from werkzeug<3.1.2->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.418   Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)
-#19 8.507 Collecting cffi>=1.14 (from cryptography->authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.515   Downloading cffi-1.17.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.5 kB)
-#19 8.608 Collecting pycparser (from cffi>=1.14->cryptography->authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.616   Downloading pycparser-2.22-py3-none-any.whl.metadata (943 bytes)
-#19 8.745 Collecting charset_normalizer<4,>=2 (from requests<3.0.0,>=2.31.0->jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.753   Downloading charset_normalizer-3.4.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (36 kB)
-#19 8.790 Collecting urllib3<3,>=1.21.1 (from requests<3.0.0,>=2.31.0->jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.798   Downloading urllib3-2.5.0-py3-none-any.whl.metadata (6.5 kB)
-#19 8.834 Collecting six (from rfc3339-validator->openapi-schema-validator<0.7.0,>=0.6.0->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
-#19 8.841   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
-#19 8.882 Downloading asyncio_throttle-1.0.2-py3-none-any.whl (4.1 kB)
-#19 8.892 Downloading fastmcp-2.12.2-py3-none-any.whl (312 kB)
-#19 8.901    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 312.0/312.0 kB 39.6 MB/s eta 0:00:00
-#19 8.909 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
-#19 8.910    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 377.3 MB/s eta 0:00:00
-#19 8.918 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
-#19 8.919    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 360.9 MB/s eta 0:00:00
-#19 8.927 Downloading pydantic-2.11.7-py3-none-any.whl (444 kB)
-#19 8.930    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 444.8/444.8 kB 219.5 MB/s eta 0:00:00
-#19 8.938 Downloading pydantic_core-2.33.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
-#19 8.948    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 230.9 MB/s eta 0:00:00
-#19 8.955 Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
-#19 8.957    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 348.1 MB/s eta 0:00:00
-#19 8.964 Downloading uvicorn-0.35.0-py3-none-any.whl (66 kB)
-#19 8.966    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.4/66.4 kB 339.3 MB/s eta 0:00:00
-#19 8.973 Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
-#19 8.981 Downloading authlib-1.6.3-py2.py3-none-any.whl (240 kB)
-#19 8.983    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 240.1/240.1 kB 413.4 MB/s eta 0:00:00
-#19 8.991 Downloading click-8.2.1-py3-none-any.whl (102 kB)
-#19 8.992    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 102.2/102.2 kB 387.5 MB/s eta 0:00:00
-#19 9.000 Downloading cyclopts-3.23.1-py3-none-any.whl (85 kB)
-#19 9.001    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.2/85.2 kB 374.4 MB/s eta 0:00:00
-#19 9.009 Downloading exceptiongroup-1.3.0-py3-none-any.whl (16 kB)
-#19 9.016 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
-#19 9.026 Downloading mcp-1.13.1-py3-none-any.whl (161 kB)
-#19 9.027    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 161.5/161.5 kB 255.5 MB/s eta 0:00:00
-#19 9.035 Downloading anyio-4.10.0-py3-none-any.whl (107 kB)
-#19 9.036    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 107.2/107.2 kB 305.5 MB/s eta 0:00:00
-#19 9.044 Downloading idna-3.10-py3-none-any.whl (70 kB)
-#19 9.046    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 70.4/70.4 kB 367.3 MB/s eta 0:00:00
-#19 9.053 Downloading openapi_core-0.19.5-py3-none-any.whl (106 kB)
-#19 9.055    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 106.6/106.6 kB 369.1 MB/s eta 0:00:00
-#19 9.063 Downloading openapi_pydantic-0.5.1-py3-none-any.whl (96 kB)
-#19 9.064    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 96.4/96.4 kB 367.8 MB/s eta 0:00:00
-#19 9.072 Downloading python_dotenv-1.1.1-py3-none-any.whl (20 kB)
-#19 9.079 Downloading rich-14.1.0-py3-none-any.whl (243 kB)
-#19 9.081    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.4/243.4 kB 380.1 MB/s eta 0:00:00
-#19 9.089 Downloading typing_inspection-0.4.1-py3-none-any.whl (14 kB)
-#19 9.097 Downloading certifi-2025.8.3-py3-none-any.whl (161 kB)
-#19 9.098    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 161.2/161.2 kB 396.0 MB/s eta 0:00:00
-#19 9.106 Downloading attrs-25.3.0-py3-none-any.whl (63 kB)
-#19 9.107    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.8/63.8 kB 351.0 MB/s eta 0:00:00
-#19 9.115 Downloading docstring_parser-0.17.0-py3-none-any.whl (36 kB)
-#19 9.123 Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
-#19 9.132 Downloading httpx_sse-0.4.1-py3-none-any.whl (8.1 kB)
-#19 9.140 Downloading jsonschema-4.25.1-py3-none-any.whl (90 kB)
-#19 9.141    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.0/90.0 kB 367.0 MB/s eta 0:00:00
-#19 9.149 Downloading jsonschema_path-0.3.4-py3-none-any.whl (14 kB)
-#19 9.156 Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
-#19 9.158    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 kB 363.0 MB/s eta 0:00:00
-#19 9.165 Downloading openapi_schema_validator-0.6.3-py3-none-any.whl (8.8 kB)
-#19 9.173 Downloading openapi_spec_validator-0.7.2-py3-none-any.whl (39 kB)
-#19 9.180 Downloading pydantic_settings-2.10.1-py3-none-any.whl (45 kB)
-#19 9.182    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.2/45.2 kB 324.1 MB/s eta 0:00:00
-#19 9.189 Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
-#19 9.193    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 404.6 MB/s eta 0:00:00
-#19 9.201 Downloading python_multipart-0.0.20-py3-none-any.whl (24 kB)
-#19 9.208 Downloading rich_rst-1.3.1-py3-none-any.whl (11 kB)
-#19 9.216 Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
-#19 9.224 Downloading sse_starlette-3.0.2-py3-none-any.whl (11 kB)
-#19 9.232 Downloading starlette-0.47.3-py3-none-any.whl (72 kB)
-#19 9.234    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.0/73.0 kB 307.1 MB/s eta 0:00:00
-#19 9.243 Downloading werkzeug-3.1.1-py3-none-any.whl (224 kB)
-#19 9.245    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 224.4/224.4 kB 402.1 MB/s eta 0:00:00
-#19 9.253 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-#19 9.265    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 404.3 MB/s eta 0:00:00
-#19 9.273 Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
-#19 9.280 Downloading more_itertools-10.8.0-py3-none-any.whl (69 kB)
-#19 9.282    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.7/69.7 kB 358.4 MB/s eta 0:00:00
-#19 9.289 Downloading parse-1.20.2-py2.py3-none-any.whl (20 kB)
-#19 9.297 Downloading cffi-1.17.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (467 kB)
-#19 9.299    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 467.2/467.2 kB 409.0 MB/s eta 0:00:00
-#19 9.310 Downloading dnspython-2.7.0-py3-none-any.whl (313 kB)
-#19 9.312    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 313.6/313.6 kB 418.0 MB/s eta 0:00:00
-#19 9.320 Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl (18 kB)
-#19 9.328 Downloading lazy_object_proxy-1.12.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (68 kB)
-#19 9.329    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.8/68.8 kB 369.4 MB/s eta 0:00:00
-#19 9.336 Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (23 kB)
-#19 9.344 Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
-#19 9.359 Downloading pathable-0.4.4-py3-none-any.whl (9.6 kB)
-#19 9.368 Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (762 kB)
-#19 9.371    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 763.0/763.0 kB 391.7 MB/s eta 0:00:00
-#19 9.378 Downloading referencing-0.36.2-py3-none-any.whl (26 kB)
-#19 9.386 Downloading requests-2.32.5-py3-none-any.whl (64 kB)
-#19 9.387    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 375.9 MB/s eta 0:00:00
-#19 9.395 Downloading rpds_py-0.27.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (384 kB)
-#19 9.398    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 384.1/384.1 kB 194.0 MB/s eta 0:00:00
-#19 9.406 Downloading docutils-0.22-py3-none-any.whl (630 kB)
-#19 9.411    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 630.7/630.7 kB 163.7 MB/s eta 0:00:00
-#19 9.419 Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl (3.5 kB)
-#19 9.426 Downloading charset_normalizer-3.4.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (150 kB)
-#19 9.428    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 150.3/150.3 kB 396.8 MB/s eta 0:00:00
-#19 9.435 Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
-#19 9.436    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 129.8/129.8 kB 400.9 MB/s eta 0:00:00
-#19 9.444 Downloading pycparser-2.22-py3-none-any.whl (117 kB)
-#19 9.445    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.6/117.6 kB 381.6 MB/s eta 0:00:00
-#19 9.453 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
-#19 9.493 Building wheels for collected packages: musicbrainz-mcp, pyperclip
-#19 9.494   Building editable for musicbrainz-mcp (pyproject.toml): started
-#19 9.882   Building editable for musicbrainz-mcp (pyproject.toml): finished with status 'done'
-#19 9.882   Created wheel for musicbrainz-mcp: filename=musicbrainz_mcp-0.1.0-0.editable-py3-none-any.whl size=7314 sha256=259e1f261a8be3cd1853260103f5df89b2f9b70f906be9d67533d7b8cb76aca5
-#19 9.882   Stored in directory: /tmp/pip-ephem-wheel-cache-cq157g85/wheels/57/0f/98/bb57b2b57b95807699b822a35c022f139d38a02c27922f27ce
-#19 9.885   Building wheel for pyperclip (setup.py): started
-#19 10.58   Building wheel for pyperclip (setup.py): finished with status 'done'
-#19 10.58   Created wheel for pyperclip: filename=pyperclip-1.9.0-py3-none-any.whl size=11001 sha256=0a4f011a3c3a54fa6e809fce7deda7fcc93f07e48453a668ee8f1c129d24af2b
-#19 10.58   Stored in directory: /tmp/pip-ephem-wheel-cache-cq157g85/wheels/e8/e7/56/591cb88ba1783b38c40d584026e766aac9c3a048e34128ce8b
-#19 10.58 Successfully built musicbrainz-mcp pyperclip
-#19 10.75 Installing collected packages: pyperclip, parse, urllib3, typing-extensions, sniffio, six, rpds-py, PyYAML, python-multipart, python-dotenv, pygments, pycparser, pathable, more-itertools, mdurl, MarkupSafe, lazy-object-proxy, isodate, idna, httpx-sse, h11, docutils, docstring-parser, dnspython, click, charset_normalizer, certifi, attrs, asyncio-throttle, annotated-types, werkzeug, uvicorn, typing-inspection, rfc3339-validator, requests, referencing, pydantic-core, markdown-it-py, httpcore, exceptiongroup, email-validator, cffi, anyio, starlette, sse-starlette, rich, pydantic, jsonschema-specifications, jsonschema-path, httpx, cryptography, rich-rst, pydantic-settings, openapi-pydantic, jsonschema, authlib, openapi-schema-validator, mcp, cyclopts, openapi-spec-validator, openapi-core, fastmcp, musicbrainz-mcp
-#19 14.34 Successfully installed MarkupSafe-3.0.2 PyYAML-6.0.2 annotated-types-0.7.0 anyio-4.10.0 asyncio-throttle-1.0.2 attrs-25.3.0 authlib-1.6.3 certifi-2025.8.3 cffi-1.17.1 charset_normalizer-3.4.3 click-8.2.1 cryptography-45.0.7 cyclopts-3.23.1 dnspython-2.7.0 docstring-parser-0.17.0 docutils-0.22 email-validator-2.3.0 exceptiongroup-1.3.0 fastmcp-2.12.2 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 httpx-sse-0.4.1 idna-3.10 isodate-0.7.2 jsonschema-4.25.1 jsonschema-path-0.3.4 jsonschema-specifications-2025.4.1 lazy-object-proxy-1.12.0 markdown-it-py-4.0.0 mcp-1.13.1 mdurl-0.1.2 more-itertools-10.8.0 musicbrainz-mcp-0.1.0 openapi-core-0.19.5 openapi-pydantic-0.5.1 openapi-schema-validator-0.6.3 openapi-spec-validator-0.7.2 parse-1.20.2 pathable-0.4.4 pycparser-2.22 pydantic-2.11.7 pydantic-core-2.33.2 pydantic-settings-2.10.1 pygments-2.19.2 pyperclip-1.9.0 python-dotenv-1.1.1 python-multipart-0.0.20 referencing-0.36.2 requests-2.32.5 rfc3339-validator-0.1.4 rich-14.1.0 rich-rst-1.3.1 rpds-py-0.27.1 six-1.17.0 sniffio-1.3.1 sse-starlette-3.0.2 starlette-0.47.3 typing-extensions-4.15.0 typing-inspection-0.4.1 urllib3-2.5.0 uvicorn-0.35.0 werkzeug-3.1.1
-#19 14.34 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
-#19 14.38
-#19 14.38 [notice] A new release of pip is available: 24.0 -> 25.2
-#19 14.38 [notice] To update, run: pip install --upgrade pip
-#19 DONE 14.9s
+#19 7.019 Collecting attrs>=23.1.0 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.022   Downloading attrs-25.3.0-py3-none-any.whl.metadata (10 kB)
+#19 7.032 Collecting docstring-parser>=0.15 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.036   Downloading docstring_parser-0.17.0-py3-none-any.whl.metadata (3.5 kB)
+#19 7.053 Collecting rich-rst<2.0.0,>=1.3.1 (from cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.056   Downloading rich_rst-1.3.1-py3-none-any.whl.metadata (6.0 kB)
+#19 7.078 Collecting httpx-sse>=0.4 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.080   Downloading httpx_sse-0.4.1-py3-none-any.whl.metadata (9.4 kB)
+#19 7.104 Collecting jsonschema>=4.20.0 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.107   Downloading jsonschema-4.25.1-py3-none-any.whl.metadata (7.6 kB)
+#19 7.120 Collecting pydantic-settings>=2.5.2 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.122   Downloading pydantic_settings-2.10.1-py3-none-any.whl.metadata (3.4 kB)
+#19 7.141 Collecting python-multipart>=0.0.9 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.143   Downloading python_multipart-0.0.20-py3-none-any.whl.metadata (1.8 kB)
+#19 7.157 Collecting sse-starlette>=1.6.1 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.160   Downloading sse_starlette-3.0.2-py3-none-any.whl.metadata (11 kB)
+#19 7.187 Collecting starlette>=0.27 (from mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.190   Downloading starlette-0.47.3-py3-none-any.whl.metadata (6.2 kB)
+#19 7.208 Collecting sniffio>=1.1 (from anyio->httpx>=0.25.0->musicbrainz-mcp==0.1.0)
+#19 7.211   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+#19 7.235 Collecting isodate (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.237   Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+#19 7.251 Collecting jsonschema-path<0.4.0,>=0.3.1 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.254   Downloading jsonschema_path-0.3.4-py3-none-any.whl.metadata (4.3 kB)
+#19 7.267 Collecting more-itertools (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.270   Downloading more_itertools-10.8.0-py3-none-any.whl.metadata (39 kB)
+#19 7.284 Collecting openapi-schema-validator<0.7.0,>=0.6.0 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.287   Downloading openapi_schema_validator-0.6.3-py3-none-any.whl.metadata (5.4 kB)
+#19 7.301 Collecting openapi-spec-validator<0.8.0,>=0.7.1 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.303   Downloading openapi_spec_validator-0.7.2-py3-none-any.whl.metadata (5.7 kB)
+#19 7.313 Collecting parse (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.315   Downloading parse-1.20.2-py2.py3-none-any.whl.metadata (22 kB)
+#19 7.342 Collecting werkzeug<3.1.2 (from openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.344   Downloading werkzeug-3.1.1-py3-none-any.whl.metadata (3.7 kB)
+#19 7.371 Collecting email-validator>=2.0.0 (from pydantic[email]>=2.11.7->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.373   Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+#19 7.396 Collecting markdown-it-py>=2.2.0 (from rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.398   Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+#19 7.419 Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.422   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+#19 7.474 Collecting dnspython>=2.0.0 (from email-validator>=2.0.0->pydantic[email]>=2.11.7->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.476   Downloading dnspython-2.7.0-py3-none-any.whl.metadata (5.8 kB)
+#19 7.503 Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.521   Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl.metadata (2.9 kB)
+#19 7.544 Collecting referencing>=0.28.4 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.570   Downloading referencing-0.36.2-py3-none-any.whl.metadata (2.8 kB)
+#19 7.800 Collecting rpds-py>=0.7.1 (from jsonschema>=4.20.0->mcp<2.0.0,>=1.12.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.803   Downloading rpds_py-0.27.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)
+#19 7.833 Collecting PyYAML>=5.1 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.836   Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+#19 7.846 Collecting pathable<0.5.0,>=0.4.1 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.848   Downloading pathable-0.4.4-py3-none-any.whl.metadata (1.8 kB)
+#19 7.877 Collecting requests<3.0.0,>=2.31.0 (from jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.879   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+#19 7.899 Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.9.4->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.901   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+#19 7.920 Collecting rfc3339-validator (from openapi-schema-validator<0.7.0,>=0.6.0->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.922   Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl.metadata (1.5 kB)
+#19 7.954 Collecting lazy-object-proxy<2.0.0,>=1.7.1 (from openapi-spec-validator<0.8.0,>=0.7.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.957   Downloading lazy_object_proxy-1.12.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (5.1 kB)
+#19 7.991 Collecting docutils (from rich-rst<2.0.0,>=1.3.1->cyclopts>=3.0.0->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 7.993   Downloading docutils-0.22-py3-none-any.whl.metadata (15 kB)
+#19 8.069 Collecting MarkupSafe>=2.1.1 (from werkzeug<3.1.2->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.072   Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)
+#19 8.155 Collecting cffi>=1.14 (from cryptography->authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.157   Downloading cffi-1.17.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.5 kB)
+#19 8.183 Collecting pycparser (from cffi>=1.14->cryptography->authlib>=1.5.2->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.186   Downloading pycparser-2.22-py3-none-any.whl.metadata (943 bytes)
+#19 8.371 Collecting charset_normalizer<4,>=2 (from requests<3.0.0,>=2.31.0->jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.373   Downloading charset_normalizer-3.4.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (36 kB)
+#19 8.405 Collecting urllib3<3,>=1.21.1 (from requests<3.0.0,>=2.31.0->jsonschema-path<0.4.0,>=0.3.1->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.407   Downloading urllib3-2.5.0-py3-none-any.whl.metadata (6.5 kB)
+#19 8.437 Collecting six (from rfc3339-validator->openapi-schema-validator<0.7.0,>=0.6.0->openapi-core>=0.19.5->fastmcp>=2.0.0->musicbrainz-mcp==0.1.0)
+#19 8.440   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+#19 8.474 Downloading asyncio_throttle-1.0.2-py3-none-any.whl (4.1 kB)
+#19 8.478 Downloading fastmcp-2.12.2-py3-none-any.whl (312 kB)
+#19 8.481    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 312.0/312.0 kB 236.5 MB/s eta 0:00:00
+#19 8.483 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#19 8.484    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 394.5 MB/s eta 0:00:00
+#19 8.487 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#19 8.489    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 380.2 MB/s eta 0:00:00
+#19 8.491 Downloading pydantic-2.11.7-py3-none-any.whl (444 kB)
+#19 8.493    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 444.8/444.8 kB 390.3 MB/s eta 0:00:00
+#19 8.496 Downloading pydantic_core-2.33.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.0 MB)
+#19 8.502    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 437.3 MB/s eta 0:00:00
+#19 8.505 Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+#19 8.506    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 369.7 MB/s eta 0:00:00
+#19 8.520 Downloading uvicorn-0.35.0-py3-none-any.whl (66 kB)
+#19 8.521    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.4/66.4 kB 363.5 MB/s eta 0:00:00
+#19 8.563 Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+#19 8.567 Downloading authlib-1.6.3-py2.py3-none-any.whl (240 kB)
+#19 8.569    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 240.1/240.1 kB 414.2 MB/s eta 0:00:00
+#19 8.571 Downloading click-8.2.1-py3-none-any.whl (102 kB)
+#19 8.573    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 102.2/102.2 kB 406.9 MB/s eta 0:00:00
+#19 8.575 Downloading cyclopts-3.23.1-py3-none-any.whl (85 kB)
+#19 8.576    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.2/85.2 kB 391.4 MB/s eta 0:00:00
+#19 8.578 Downloading exceptiongroup-1.3.0-py3-none-any.whl (16 kB)
+#19 8.581 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#19 8.583 Downloading mcp-1.13.1-py3-none-any.whl (161 kB)
+#19 8.585    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 161.5/161.5 kB 409.6 MB/s eta 0:00:00
+#19 8.587 Downloading anyio-4.10.0-py3-none-any.whl (107 kB)
+#19 8.588    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 107.2/107.2 kB 389.4 MB/s eta 0:00:00
+#19 8.591 Downloading idna-3.10-py3-none-any.whl (70 kB)
+#19 8.592    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 70.4/70.4 kB 379.8 MB/s eta 0:00:00
+#19 8.594 Downloading openapi_core-0.19.5-py3-none-any.whl (106 kB)
+#19 8.595    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 106.6/106.6 kB 399.5 MB/s eta 0:00:00
+#19 8.598 Downloading openapi_pydantic-0.5.1-py3-none-any.whl (96 kB)
+#19 8.599    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 96.4/96.4 kB 405.8 MB/s eta 0:00:00
+#19 8.601 Downloading python_dotenv-1.1.1-py3-none-any.whl (20 kB)
+#19 8.603 Downloading rich-14.1.0-py3-none-any.whl (243 kB)
+#19 8.605    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.4/243.4 kB 426.7 MB/s eta 0:00:00
+#19 8.608 Downloading typing_inspection-0.4.1-py3-none-any.whl (14 kB)
+#19 8.610 Downloading certifi-2025.8.3-py3-none-any.whl (161 kB)
+#19 8.612    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 161.2/161.2 kB 426.0 MB/s eta 0:00:00
+#19 8.614 Downloading attrs-25.3.0-py3-none-any.whl (63 kB)
+#19 8.615    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.8/63.8 kB 394.2 MB/s eta 0:00:00
+#19 8.617 Downloading docstring_parser-0.17.0-py3-none-any.whl (36 kB)
+#19 8.620 Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+#19 8.623 Downloading httpx_sse-0.4.1-py3-none-any.whl (8.1 kB)
+#19 8.625 Downloading jsonschema-4.25.1-py3-none-any.whl (90 kB)
+#19 8.627    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.0/90.0 kB 407.5 MB/s eta 0:00:00
+#19 8.629 Downloading jsonschema_path-0.3.4-py3-none-any.whl (14 kB)
+#19 8.631 Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+#19 8.633    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 kB 403.1 MB/s eta 0:00:00
+#19 8.636 Downloading openapi_schema_validator-0.6.3-py3-none-any.whl (8.8 kB)
+#19 8.639 Downloading openapi_spec_validator-0.7.2-py3-none-any.whl (39 kB)
+#19 8.641 Downloading pydantic_settings-2.10.1-py3-none-any.whl (45 kB)
+#19 8.642    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.2/45.2 kB 345.9 MB/s eta 0:00:00
+#19 8.645 Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+#19 8.648    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 434.9 MB/s eta 0:00:00
+#19 8.651 Downloading python_multipart-0.0.20-py3-none-any.whl (24 kB)
+#19 8.654 Downloading rich_rst-1.3.1-py3-none-any.whl (11 kB)
+#19 8.656 Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+#19 8.659 Downloading sse_starlette-3.0.2-py3-none-any.whl (11 kB)
+#19 8.661 Downloading starlette-0.47.3-py3-none-any.whl (72 kB)
+#19 8.662    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.0/73.0 kB 379.0 MB/s eta 0:00:00
+#19 8.665 Downloading werkzeug-3.1.1-py3-none-any.whl (224 kB)
+#19 8.667    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 224.4/224.4 kB 419.9 MB/s eta 0:00:00
+#19 8.669 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+#19 8.681    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 438.1 MB/s eta 0:00:00
+#19 8.683 Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+#19 8.686 Downloading more_itertools-10.8.0-py3-none-any.whl (69 kB)
+#19 8.687    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.7/69.7 kB 377.1 MB/s eta 0:00:00
+#19 8.690 Downloading parse-1.20.2-py2.py3-none-any.whl (20 kB)
+#19 8.692 Downloading cffi-1.17.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (467 kB)
+#19 8.695    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 467.2/467.2 kB 418.4 MB/s eta 0:00:00
+#19 8.697 Downloading dnspython-2.7.0-py3-none-any.whl (313 kB)
+#19 8.699    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 313.6/313.6 kB 408.5 MB/s eta 0:00:00
+#19 8.702 Downloading jsonschema_specifications-2025.4.1-py3-none-any.whl (18 kB)
+#19 8.704 Downloading lazy_object_proxy-1.12.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (68 kB)
+#19 8.705    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.8/68.8 kB 374.3 MB/s eta 0:00:00
+#19 8.708 Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (23 kB)
+#19 8.710 Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+#19 8.712 Downloading pathable-0.4.4-py3-none-any.whl (9.6 kB)
+#19 8.715 Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (762 kB)
+#19 8.717    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 763.0/763.0 kB 426.0 MB/s eta 0:00:00
+#19 8.720 Downloading referencing-0.36.2-py3-none-any.whl (26 kB)
+#19 8.723 Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+#19 8.724    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 392.2 MB/s eta 0:00:00
+#19 8.728 Downloading rpds_py-0.27.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (384 kB)
+#19 8.730    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 384.1/384.1 kB 438.8 MB/s eta 0:00:00
+#19 8.732 Downloading docutils-0.22-py3-none-any.whl (630 kB)
+#19 8.735    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 630.7/630.7 kB 423.7 MB/s eta 0:00:00
+#19 8.737 Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl (3.5 kB)
+#19 8.740 Downloading charset_normalizer-3.4.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (150 kB)
+#19 8.741    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 150.3/150.3 kB 413.9 MB/s eta 0:00:00
+#19 8.743 Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
+#19 8.745    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 129.8/129.8 kB 420.3 MB/s eta 0:00:00
+#19 8.747 Downloading pycparser-2.22-py3-none-any.whl (117 kB)
+#19 8.749    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.6/117.6 kB 332.5 MB/s eta 0:00:00
+#19 8.751 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+#19 8.792 Building wheels for collected packages: musicbrainz-mcp, pyperclip
+#19 8.792   Building editable for musicbrainz-mcp (pyproject.toml): started
+#19 9.196   Building editable for musicbrainz-mcp (pyproject.toml): finished with status 'done'
+#19 9.196   Created wheel for musicbrainz-mcp: filename=musicbrainz_mcp-0.1.0-0.editable-py3-none-any.whl size=7314 sha256=58995ba92d57838f8265b2d888fcfee353b4fa51c75d096d5b6f9f944f7cd15c
+#19 9.196   Stored in directory: /tmp/pip-ephem-wheel-cache-gkgxw4zz/wheels/57/0f/98/bb57b2b57b95807699b822a35c022f139d38a02c27922f27ce
+#19 9.199   Building wheel for pyperclip (setup.py): started
+#19 9.849   Building wheel for pyperclip (setup.py): finished with status 'done'
+#19 9.850   Created wheel for pyperclip: filename=pyperclip-1.9.0-py3-none-any.whl size=11001 sha256=a51e8c2376e3a6417a84d6b8eca2289790c5cc5436cf389dca9d68a300f4d15d
+#19 9.850   Stored in directory: /tmp/pip-ephem-wheel-cache-gkgxw4zz/wheels/e8/e7/56/591cb88ba1783b38c40d584026e766aac9c3a048e34128ce8b
+#19 9.851 Successfully built musicbrainz-mcp pyperclip
+#19 10.02 Installing collected packages: pyperclip, parse, urllib3, typing-extensions, sniffio, six, rpds-py, PyYAML, python-multipart, python-dotenv, pygments, pycparser, pathable, more-itertools, mdurl, MarkupSafe, lazy-object-proxy, isodate, idna, httpx-sse, h11, docutils, docstring-parser, dnspython, click, charset_normalizer, certifi, attrs, asyncio-throttle, annotated-types, werkzeug, uvicorn, typing-inspection, rfc3339-validator, requests, referencing, pydantic-core, markdown-it-py, httpcore, exceptiongroup, email-validator, cffi, anyio, starlette, sse-starlette, rich, pydantic, jsonschema-specifications, jsonschema-path, httpx, cryptography, rich-rst, pydantic-settings, openapi-pydantic, jsonschema, authlib, openapi-schema-validator, mcp, cyclopts, openapi-spec-validator, openapi-core, fastmcp, musicbrainz-mcp
+#19 13.64 Successfully installed MarkupSafe-3.0.2 PyYAML-6.0.2 annotated-types-0.7.0 anyio-4.10.0 asyncio-throttle-1.0.2 attrs-25.3.0 authlib-1.6.3 certifi-2025.8.3 cffi-1.17.1 charset_normalizer-3.4.3 click-8.2.1 cryptography-45.0.7 cyclopts-3.23.1 dnspython-2.7.0 docstring-parser-0.17.0 docutils-0.22 email-validator-2.3.0 exceptiongroup-1.3.0 fastmcp-2.12.2 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 httpx-sse-0.4.1 idna-3.10 isodate-0.7.2 jsonschema-4.25.1 jsonschema-path-0.3.4 jsonschema-specifications-2025.4.1 lazy-object-proxy-1.12.0 markdown-it-py-4.0.0 mcp-1.13.1 mdurl-0.1.2 more-itertools-10.8.0 musicbrainz-mcp-0.1.0 openapi-core-0.19.5 openapi-pydantic-0.5.1 openapi-schema-validator-0.6.3 openapi-spec-validator-0.7.2 parse-1.20.2 pathable-0.4.4 pycparser-2.22 pydantic-2.11.7 pydantic-core-2.33.2 pydantic-settings-2.10.1 pygments-2.19.2 pyperclip-1.9.0 python-dotenv-1.1.1 python-multipart-0.0.20 referencing-0.36.2 requests-2.32.5 rfc3339-validator-0.1.4 rich-14.1.0 rich-rst-1.3.1 rpds-py-0.27.1 six-1.17.0 sniffio-1.3.1 sse-starlette-3.0.2 starlette-0.47.3 typing-extensions-4.15.0 typing-inspection-0.4.1 urllib3-2.5.0 uvicorn-0.35.0 werkzeug-3.1.1
+#19 13.64 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#19 13.71
+#19 13.71 [notice] A new release of pip is available: 24.0 -> 25.2
+#19 13.71 [notice] To update, run: pip install --upgrade pip
+#19 DONE 14.3s
 #20 [stage-1 10/17] RUN useradd --create-home --shell /bin/bash musicbrainz
-#20 DONE 0.4s
+#20 DONE 0.5s
 #21 [stage-1 11/17] RUN chown -R musicbrainz:musicbrainz /app
 #21 DONE 0.4s
 Starting deployment...

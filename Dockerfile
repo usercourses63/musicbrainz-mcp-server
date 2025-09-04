@@ -34,9 +34,14 @@ USER musicbrainz
 # Expose port (smithery.ai uses 8081)
 EXPOSE 8081
 
-# Health check using httpx (already a dependency)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8081/health', timeout=5)" || exit 1
+# Health check using httpx with proper error handling
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import httpx; import sys; \
+try: \
+    response = httpx.get('http://localhost:8081/health', timeout=5); \
+    sys.exit(0 if 200 <= response.status_code < 400 else 1) \
+except Exception: \
+    sys.exit(1)" || exit 1
 
 # Default command
 CMD ["python", "-m", "musicbrainz_mcp.server"]
