@@ -31,8 +31,8 @@ RUN useradd --create-home --shell /bin/bash musicbrainz
 RUN chown -R musicbrainz:musicbrainz /app
 USER musicbrainz
 
-# Expose port
-EXPOSE 8000
+# Expose port (smithery.ai uses 8081)
+EXPOSE 8081
 
 # Health check using httpx (already a dependency)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

@@ -7,6 +7,9 @@ MusicBrainz client.
 """
 
 import asyncio
+import base64
+import binascii
+import json
 import logging
 import os
 from typing import Any, Dict, List, Optional
@@ -15,6 +18,9 @@ import uvicorn
 from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from .musicbrainz_client import MusicBrainzClient
 from .models import Artist, Release, Recording, ReleaseGroup, SearchResult, BrowseResult
@@ -31,18 +37,64 @@ mcp = FastMCP("MusicBrainz MCP Server")
 # Global MusicBrainz client instance
 _client: Optional[MusicBrainzClient] = None
 
+# Global configuration from query parameters
+_current_config: Optional[Dict[str, Any]] = None
 
-def configure_client_from_env():
-    """Configure the MusicBrainz client from environment variables and query parameters."""
+# Track the configuration used to create the current client
+_client_config: Optional[Dict[str, Any]] = None
+
+
+def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, Any]:
+    """
+    Parse base64-encoded configuration from query parameters.
+
+    Args:
+        query_params: Dictionary of query parameters from HTTP request
+
+    Returns:
+        Dictionary of parsed configuration values
+
+    Raises:
+        ValueError: If configuration parsing fails
+    """
+    config_param = query_params.get('config')
+    if not config_param:
+        return {}
+
+    try:
+        # Decode base64-encoded configuration
+        config_data = base64.b64decode(config_param).decode('utf-8')
+        parsed_config = json.loads(config_data)
+
+        logger.debug(f"Parsed configuration from query parameters: {parsed_config}")
+        return parsed_config
+
+    except (binascii.Error, json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.warning(f"Failed to parse configuration from query parameters: {e}")
+        return {}
+
+
+def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
+    """
+    Configure the MusicBrainz client from environment variables and optional config.
+
+    Args:
+        config: Optional configuration dictionary from query parameters
+    """
     global _client
 
-    # Get configuration from environment variables
+    # Get configuration from environment variables (defaults)
     user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", "MusicBrainzMCP/1.0.0")
     rate_limit = float(os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0"))
     timeout = float(os.getenv("MUSICBRAINZ_TIMEOUT", "30.0"))
 
-    # For HTTP mode, configuration might come from query parameters
-    # This will be handled by the FastMCP framework automatically
+    # Override with query parameter configuration if provided
+    if config:
+        user_agent = config.get("user_agent", user_agent)
+        rate_limit = float(config.get("rate_limit", rate_limit))
+        timeout = float(config.get("timeout", timeout))
+
+        logger.info(f"Using configuration from query parameters: user_agent={user_agent}")
 
     if _client is None:
         _client = MusicBrainzClient(
@@ -54,12 +106,36 @@ def configure_client_from_env():
     return _client
 
 
-async def get_client() -> MusicBrainzClient:
-    """Get or create the global MusicBrainz client instance."""
-    global _client
-    if _client is None:
-        _client = configure_client_from_env()
+async def get_client(config: Optional[Dict[str, Any]] = None) -> MusicBrainzClient:
+    """
+    Get or create the global MusicBrainz client instance.
+
+    Args:
+        config: Optional configuration dictionary from query parameters
+    """
+    global _client, _current_config, _client_config
+
+    # Use provided config, or fall back to global config from middleware
+    effective_config = config or _current_config
+
+    # Check if we need to recreate the client due to configuration change
+    config_changed = (
+        _client is not None and
+        effective_config != _client_config
+    )
+
+    if _client is None or config_changed:
+        # Close existing client if it exists
+        if _client is not None:
+            await _client.close()
+            _client = None
+
+        # Create new client with current configuration
+        _client = configure_client_from_env(effective_config)
         await _client.__aenter__()
+
+        # Remember the configuration used for this client
+        _client_config = effective_config.copy() if effective_config else None
 
     return _client
 
@@ -583,10 +659,43 @@ def create_server() -> FastMCP:
 
 async def cleanup():
     """Clean up resources when the server shuts down."""
-    global _client
+    global _client, _client_config
     if _client is not None:
         await _client.close()
         _client = None
+        _client_config = None
+
+
+class ConfigurationMiddleware(BaseHTTPMiddleware):
+    """Middleware to extract and parse configuration from query parameters."""
+
+    async def dispatch(self, request: Request, call_next):
+        """
+        Extract configuration from query parameters and make it available globally.
+
+        Args:
+            request: The incoming HTTP request
+            call_next: The next middleware or endpoint
+        """
+        global _current_config
+
+        # Extract query parameters
+        query_params = dict(request.query_params)
+
+        # Parse configuration if present
+        config = parse_config_from_query_params(query_params)
+
+        # Store configuration globally for use by MCP tools
+        if config:
+            _current_config = config
+            logger.debug(f"Configuration middleware set global config: {config}")
+
+        # Store configuration in request state as well
+        request.state.config = config
+
+        # Continue to next middleware/endpoint
+        response = await call_next(request)
+        return response
 
 
 def main():
@@ -618,7 +727,7 @@ def main():
             logger.info(f"Starting HTTP server on port {port}")
 
             # Setup Starlette app with CORS for cross-origin requests
-            app = mcp.streamable_http_app()
+            app = mcp.http_app()
 
             # Add health check endpoint
             from starlette.responses import JSONResponse
@@ -634,9 +743,19 @@ def main():
                 allow_credentials=True,
                 allow_methods=["GET", "POST", "OPTIONS"],
                 allow_headers=["*"],
-                expose_headers=["mcp-session-id", "mcp-protocol-version"],
+                expose_headers=[
+                    "mcp-session-id",
+                    "mcp-protocol-version",
+                    "x-mcp-server",
+                    "x-request-id",
+                    "content-length",
+                    "content-type"
+                ],
                 max_age=86400,
             )
+
+            # Add configuration middleware to parse query parameters
+            app.add_middleware(ConfigurationMiddleware)
 
             # Run with uvicorn
             uvicorn.run(app, host="0.0.0.0", port=int(port), log_level="info")

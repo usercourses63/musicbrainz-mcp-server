@@ -45,11 +45,32 @@ python -m musicbrainz_mcp.main
 
 The server will start and be available for MCP client connections.
 
+## 🚀 Quick Start with Smithery.ai
+
+The easiest way to use the MusicBrainz MCP Server is through [smithery.ai](https://smithery.ai):
+
+1. **Visit [smithery.ai](https://smithery.ai)** and sign in
+2. **Search for "MusicBrainz MCP Server"** in the tool directory
+3. **Configure your settings:**
+   - User Agent: `YourApp/1.0.0 (your.email@example.com)`
+   - Rate Limit: `1.0` (requests per second)
+   - Timeout: `30.0` (seconds)
+4. **Start querying music data instantly!**
+
+### Popular Music Queries You Can Try
+
+- Search for **Taylor Swift**: `search_artist` with query "Taylor Swift"
+- Find **"Blinding Lights"**: `search_recording` with query "Blinding Lights"
+- Browse **recent releases**: `browse_artist_releases` for any artist
+- Get **detailed info**: `get_artist_details` with any artist MBID
+
 ## 📖 Documentation
 
 - **[API Reference](docs/api_reference.md)** - Complete documentation of all 10 MCP tools
 - **[Configuration Guide](docs/configuration.md)** - Environment variables and configuration options
 - **[Usage Examples](docs/examples.md)** - Practical examples and tutorials
+- **[Client Testing Guide](docs/CLIENT_TESTING.md)** - FastMCP client implementation and testing
+- **[Test Results](docs/TEST_RESULTS.md)** - Comprehensive test results (100% success rate)
 - **[Deployment Guide](#deployment)** - Production deployment instructions
 
 ## 🛠️ Available MCP Tools
