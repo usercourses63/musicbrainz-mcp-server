@@ -84,7 +84,9 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
     global _client
 
     # Get configuration from environment variables (defaults)
-    user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", "MusicBrainzMCP/1.0.0")
+    # Use a smithery.ai-friendly default user agent for tool discovery
+    default_user_agent = "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
+    user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", default_user_agent)
     rate_limit = float(os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0"))
     timeout = float(os.getenv("MUSICBRAINZ_TIMEOUT", "30.0"))
 
@@ -95,6 +97,8 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
         timeout = float(config.get("timeout", timeout))
 
         logger.info(f"Using configuration from query parameters: user_agent={user_agent}")
+    else:
+        logger.info(f"Using default configuration for tool discovery: user_agent={user_agent}")
 
     if _client is None:
         _client = MusicBrainzClient(
