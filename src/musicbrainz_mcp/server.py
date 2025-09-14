@@ -717,12 +717,8 @@ class ConfigurationMiddleware(BaseHTTPMiddleware):
         # Store configuration in request state as well
         request.state.config = config
 
-        # Avoid any potential interference with MCP streaming endpoints
-        # by immediately delegating to the underlying route for /mcp paths.
-        if str(request.url.path).startswith("/mcp"):
-            return await call_next(request)
-
-        # Continue to next middleware/endpoint
+        # Continue to next middleware/endpoint. This middleware only reads query params
+        # and does not touch the request body/stream, so it is safe for /mcp streaming.
         response = await call_next(request)
         return response
 
