@@ -29,7 +29,7 @@ startCommand:
         minimum: 5.0
         maximum: 120.0
   exampleConfig:
-    user_agent: "SmitheryMusicBrainz/1.0.0 (demo@smithery.ai)"
+    user_agent: "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
     rate_limit: 1.0
     timeout: 30.0
 

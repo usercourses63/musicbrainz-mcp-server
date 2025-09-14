@@ -756,6 +756,23 @@ def main():
             app = mcp.http_app()
             logger.info("✅ FastMCP HTTP app created successfully")
 
+            # Add request logging middleware for debugging
+            from starlette.middleware.base import BaseHTTPMiddleware
+            from starlette.requests import Request
+            from starlette.responses import Response
+
+            class RequestLoggingMiddleware(BaseHTTPMiddleware):
+                async def dispatch(self, request: Request, call_next):
+                    # Log all incoming requests for debugging
+                    logger.info(f"🔍 Request: {request.method} {request.url}")
+                    logger.info(f"🔍 Headers: {dict(request.headers)}")
+                    if request.query_params:
+                        logger.info(f"🔍 Query params: {dict(request.query_params)}")
+
+                    response = await call_next(request)
+                    logger.info(f"🔍 Response status: {response.status_code}")
+                    return response
+
             # Add health check endpoint
             from starlette.responses import JSONResponse
             from starlette.routing import Route
@@ -836,9 +853,100 @@ def main():
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     }, status_code=500)
 
+            # Add MCP tools discovery endpoint for smithery.ai
+            async def list_tools_endpoint(request):
+                """
+                Direct tools listing endpoint for smithery.ai scanning.
+                This provides tool information without requiring MCP protocol setup.
+                """
+                try:
+                    # Parse configuration from query parameters if provided
+                    config = parse_config_from_query_params(dict(request.query_params))
+                    logger.info(f"🔍 Tools discovery request with config: {config}")
+
+                    # Configure client with provided or default configuration
+                    configure_client_from_env(config)
+                    test_client = await get_client(config)
+
+                    tools_info = [
+                        {
+                            "name": "search_artist",
+                            "description": "Search for artists by name or query string",
+                            "category": "search"
+                        },
+                        {
+                            "name": "search_release",
+                            "description": "Search for releases (albums, singles, etc.) by title",
+                            "category": "search"
+                        },
+                        {
+                            "name": "search_recording",
+                            "description": "Search for recordings (individual tracks) by title",
+                            "category": "search"
+                        },
+                        {
+                            "name": "search_release_group",
+                            "description": "Search for release groups by title",
+                            "category": "search"
+                        },
+                        {
+                            "name": "get_artist_details",
+                            "description": "Get detailed information about a specific artist by MBID",
+                            "category": "lookup"
+                        },
+                        {
+                            "name": "get_release_details",
+                            "description": "Get detailed information about a specific release by MBID",
+                            "category": "lookup"
+                        },
+                        {
+                            "name": "get_recording_details",
+                            "description": "Get detailed information about a specific recording by MBID",
+                            "category": "lookup"
+                        },
+                        {
+                            "name": "browse_artist_releases",
+                            "description": "Browse releases by a specific artist",
+                            "category": "browse"
+                        },
+                        {
+                            "name": "browse_artist_recordings",
+                            "description": "Browse recordings by a specific artist",
+                            "category": "browse"
+                        },
+                        {
+                            "name": "lookup_by_mbid",
+                            "description": "Generic lookup method for any entity type by MBID",
+                            "category": "lookup"
+                        }
+                    ]
+
+                    return JSONResponse({
+                        "status": "success",
+                        "service": "MusicBrainz MCP Server",
+                        "version": "1.1.0",
+                        "tools_count": len(tools_info),
+                        "tools": tools_info,
+                        "client_configured": test_client is not None,
+                        "config_received": config,
+                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                    })
+                except Exception as e:
+                    logger.error(f"❌ Tools discovery failed: {e}")
+                    return JSONResponse({
+                        "status": "error",
+                        "message": f"Tools discovery failed: {str(e)}",
+                        "service": "MusicBrainz MCP Server",
+                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                    }, status_code=500)
+
             # Add health route to the app
             app.routes.append(Route("/health", health_check, methods=["GET"]))
             app.routes.append(Route("/test", test_tools, methods=["GET"]))
+            app.routes.append(Route("/tools", list_tools_endpoint, methods=["GET"]))
+
+            # Add request logging middleware for debugging
+            app.add_middleware(RequestLoggingMiddleware)
 
             # Add CORS middleware for browser-based clients
             app.add_middleware(
