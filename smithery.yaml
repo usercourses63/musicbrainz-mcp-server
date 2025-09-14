@@ -28,6 +28,7 @@ startCommand:
         default: 30.0
         minimum: 5.0
         maximum: 120.0
+    required: []  # Make all fields optional for scanning phase
   exampleConfig:
     user_agent: "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
     rate_limit: 1.0

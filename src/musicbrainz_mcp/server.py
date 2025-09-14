@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
 
 from .musicbrainz_client import MusicBrainzClient
 from .models import Artist, Release, Recording, ReleaseGroup, SearchResult, BrowseResult
@@ -56,9 +56,11 @@ def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, An
     """
     Parse configuration from query parameters.
 
-    Supports both:
-    - Base64-encoded JSON in `config` param (legacy/convenience)
-    - Flat query params as per Smithery session-config (e.g., user_agent, rate_limit, timeout)
+    Handles multiple Smithery.ai configuration formats:
+    - Flat query params (user_agent, rate_limit, timeout)
+    - JSON string in 'config' parameter
+    - Base64-encoded JSON in 'config' parameter
+    - Provides defaults for scanning phase when no config is provided
 
     Args:
         query_params: Dictionary of query parameters from HTTP request
@@ -66,8 +68,25 @@ def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, An
     Returns:
         Dictionary of parsed configuration values
     """
-    # 1) Prefer explicit flat params (Smithery passes these directly)
     cfg: Dict[str, Any] = {}
+
+    # 1) Handle Smithery.ai's configuration format
+    # They might pass config as JSON in a single parameter
+    if 'config' in query_params:
+        try:
+            config_str = query_params.get('config')
+            if config_str:
+                # Try to parse as JSON directly first
+                if config_str.startswith('{'):
+                    cfg = json.loads(config_str)
+                else:
+                    # Try base64 decoding
+                    config_data = base64.b64decode(config_str).decode('utf-8')
+                    cfg = json.loads(config_data)
+        except Exception as e:
+            logger.warning(f"Failed to parse config param: {e}")
+
+    # 2) Also check for flat parameters (Smithery session-config style)
     if 'user_agent' in query_params:
         cfg['user_agent'] = query_params.get('user_agent')
     if 'rate_limit' in query_params:
@@ -81,15 +100,14 @@ def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, An
         except (TypeError, ValueError):
             logger.warning("Invalid timeout provided; ignoring")
 
-    # 2) Fallback: base64-encoded JSON in `config`
-    config_param = query_params.get('config')
-    if config_param:
-        try:
-            config_data = base64.b64decode(config_param).decode('utf-8')
-            parsed_config = json.loads(config_data)
-            cfg.update(parsed_config or {})
-        except (binascii.Error, json.JSONDecodeError, UnicodeDecodeError) as e:
-            logger.warning(f"Failed to parse base64 config param: {e}")
+    # 3) Provide defaults if no config is provided (for scanning phase)
+    if not cfg:
+        cfg = {
+            'user_agent': 'SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)',
+            'rate_limit': 1.0,
+            'timeout': 30.0
+        }
+        logger.info("🔧 Using default configuration for tool discovery/scanning")
 
     if cfg:
         logger.debug(f"Parsed configuration from query parameters: {cfg}")
@@ -100,13 +118,14 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
     """
     Configure the MusicBrainz client from environment variables and optional config.
 
+    Always creates a client even without configuration for Smithery.ai scanning phase.
+
     Args:
         config: Optional configuration dictionary from query parameters
     """
     global _client
 
-    # Get configuration from environment variables (defaults)
-    # Use a smithery.ai-friendly default user agent for tool discovery
+    # Always provide defaults for scanning phase
     default_user_agent = "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
     user_agent = os.getenv("MUSICBRAINZ_USER_AGENT", default_user_agent)
     rate_limit = float(os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0"))
@@ -123,11 +142,23 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
         logger.info(f"Using default configuration for tool discovery: user_agent={user_agent}")
 
     # Always create/update the client with current configuration
-    _client = MusicBrainzClient(
-        user_agent=user_agent,
-        rate_limit=rate_limit,
-        timeout=timeout
-    )
+    # Ensure client works for scanning phase without requiring user configuration
+    try:
+        _client = MusicBrainzClient(
+            user_agent=user_agent,
+            rate_limit=rate_limit,
+            timeout=timeout
+        )
+        logger.info(f"✅ MusicBrainz client configured successfully for {'scanning' if not config else 'user session'}")
+    except Exception as e:
+        logger.error(f"❌ Failed to create MusicBrainz client: {e}")
+        # Create a minimal client for scanning if configuration fails
+        _client = MusicBrainzClient(
+            user_agent=default_user_agent,
+            rate_limit=1.0,
+            timeout=30.0
+        )
+        logger.warning("⚠️ Using minimal client configuration for tool discovery")
 
     return _client
 
@@ -673,6 +704,234 @@ async def lookup_by_mbid(params: GenericLookupParams, ctx: Context) -> Dict[str,
         raise
 
 
+async def handle_mcp_init(request: Request):
+    """
+    Handle MCP initialization requests from Smithery.ai scanner.
+    This endpoint responds to the MCP protocol handshake for tool discovery.
+    """
+    try:
+        # Parse the incoming JSON-RPC request
+        body = await request.body()
+        if not body:
+            return JSONResponse({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "error": {
+                    "code": -32600,
+                    "message": "Invalid Request - empty body"
+                }
+            }, status_code=400)
+
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            return JSONResponse({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "error": {
+                    "code": -32700,
+                    "message": "Parse error - invalid JSON"
+                }
+            }, status_code=400)
+
+        # Check if this is an initialize request
+        if data.get("method") == "initialize":
+            logger.info("🔧 Handling MCP initialize request from Smithery.ai scanner")
+            # Respond with server capabilities
+            response = {
+                "jsonrpc": "2.0",
+                "id": data.get("id", 1),
+                "result": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {
+                        "tools": {
+                            "listChanged": False
+                        }
+                    },
+                    "serverInfo": {
+                        "name": "MusicBrainz MCP Server",
+                        "version": "1.1.0"
+                    }
+                }
+            }
+            logger.info("✅ MCP initialize response sent successfully")
+            return JSONResponse(response)
+
+        # Check if this is a tools/list request
+        elif data.get("method") == "tools/list":
+            logger.info("🔧 Handling MCP tools/list request from Smithery.ai scanner")
+
+            # Ensure we have a client configured for tool discovery
+            try:
+                await get_client()
+            except Exception as e:
+                logger.warning(f"Client not configured for tool discovery, using defaults: {e}")
+                configure_client_from_env()
+
+            tools = [
+                {
+                    "name": "search_artist",
+                    "description": "Search for artists by name or query string",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query for artist names"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["query"]
+                    }
+                },
+                {
+                    "name": "search_release",
+                    "description": "Search for music releases (albums, singles, etc.) by title or query",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query for release titles"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["query"]
+                    }
+                },
+                {
+                    "name": "search_recording",
+                    "description": "Search for individual song recordings by title or query",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query for recording titles"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["query"]
+                    }
+                },
+                {
+                    "name": "search_release_group",
+                    "description": "Search for release groups (album concepts) by title or query",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query for release group titles"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["query"]
+                    }
+                },
+                {
+                    "name": "get_artist_details",
+                    "description": "Get detailed information about a specific artist by MusicBrainz ID",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "mbid": {"type": "string", "description": "MusicBrainz ID of the artist"},
+                            "include": {"type": "array", "items": {"type": "string"}, "description": "Additional data to include (e.g., 'releases', 'recordings')", "default": []}
+                        },
+                        "required": ["mbid"]
+                    }
+                },
+                {
+                    "name": "get_release_details",
+                    "description": "Get detailed information about a specific release by MusicBrainz ID",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "mbid": {"type": "string", "description": "MusicBrainz ID of the release"},
+                            "include": {"type": "array", "items": {"type": "string"}, "description": "Additional data to include (e.g., 'recordings', 'artist-credits')", "default": []}
+                        },
+                        "required": ["mbid"]
+                    }
+                },
+                {
+                    "name": "get_recording_details",
+                    "description": "Get detailed information about a specific recording by MusicBrainz ID",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "mbid": {"type": "string", "description": "MusicBrainz ID of the recording"},
+                            "include": {"type": "array", "items": {"type": "string"}, "description": "Additional data to include (e.g., 'releases', 'artist-credits')", "default": []}
+                        },
+                        "required": ["mbid"]
+                    }
+                },
+                {
+                    "name": "browse_artist_releases",
+                    "description": "Browse all releases by a specific artist",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "artist_mbid": {"type": "string", "description": "MusicBrainz ID of the artist"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["artist_mbid"]
+                    }
+                },
+                {
+                    "name": "browse_artist_recordings",
+                    "description": "Browse all recordings by a specific artist",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "artist_mbid": {"type": "string", "description": "MusicBrainz ID of the artist"},
+                            "limit": {"type": "integer", "description": "Maximum number of results (default: 25, max: 100)", "default": 25},
+                            "offset": {"type": "integer", "description": "Offset for pagination (default: 0)", "default": 0}
+                        },
+                        "required": ["artist_mbid"]
+                    }
+                },
+                {
+                    "name": "lookup_by_mbid",
+                    "description": "Look up any MusicBrainz entity by its ID and type",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "mbid": {"type": "string", "description": "MusicBrainz ID of the entity"},
+                            "entity_type": {"type": "string", "enum": ["artist", "release", "recording", "release-group"], "description": "Type of entity to look up"},
+                            "include": {"type": "array", "items": {"type": "string"}, "description": "Additional data to include", "default": []}
+                        },
+                        "required": ["mbid", "entity_type"]
+                    }
+                }
+            ]
+
+            response = {
+                "jsonrpc": "2.0",
+                "id": data.get("id", 1),
+                "result": {
+                    "tools": tools
+                }
+            }
+            logger.info(f"✅ MCP tools/list response sent successfully with {len(tools)} tools")
+            return JSONResponse(response)
+
+        # For other methods, return a proper JSON-RPC error response
+        method = data.get('method', 'unknown')
+        logger.info(f"🔄 Unknown method '{method}' - returning method not found error")
+        return JSONResponse({
+            "jsonrpc": "2.0",
+            "id": data.get("id", 1),
+            "error": {
+                "code": -32601,
+                "message": f"Method not found: {method}"
+            }
+        }, status_code=200)  # JSON-RPC errors should return 200 with error in body
+
+    except Exception as e:
+        logger.error(f"❌ Error in MCP init handler: {e}")
+        return JSONResponse({
+            "jsonrpc": "2.0",
+            "id": data.get("id", 1) if 'data' in locals() else 1,
+            "error": {
+                "code": -32603,
+                "message": f"Internal error: {str(e)}"
+            }
+        }, status_code=500)
+
+
 def create_server() -> FastMCP:
     """
     Create and configure the MusicBrainz MCP server.
@@ -1132,6 +1391,10 @@ def main():
                         "service": "MusicBrainz MCP Server",
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     }, status_code=500)
+
+            # Add MCP initialization route BEFORE other routes for Smithery.ai scanning
+            from starlette.routing import Route
+            app.routes.insert(0, Route("/mcp", handle_mcp_init, methods=["POST"]))
 
             # Add health route to the app
             app.routes.append(Route("/health", health_check, methods=["GET"]))
