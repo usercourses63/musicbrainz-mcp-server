@@ -803,8 +803,42 @@ def main():
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     }, status_code=503)
 
+            # Add test endpoint for smithery.ai tool scanning
+            async def test_tools(request):
+                """
+                Simple test endpoint that verifies MCP tools are working.
+                This helps smithery.ai verify the server is functional during scanning.
+                """
+                try:
+                    # Test that we can create a client with default configuration
+                    test_client = await get_client()
+
+                    return JSONResponse({
+                        "status": "success",
+                        "message": "MCP tools are functional",
+                        "service": "MusicBrainz MCP Server",
+                        "version": "1.1.0",
+                        "tools_available": [
+                            "search_artist", "search_release", "search_recording",
+                            "search_release_group", "get_artist_details",
+                            "get_release_details", "get_recording_details",
+                            "browse_artist_releases", "browse_artist_recordings",
+                            "lookup_by_mbid"
+                        ],
+                        "client_configured": test_client is not None,
+                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                    })
+                except Exception as e:
+                    return JSONResponse({
+                        "status": "error",
+                        "message": f"MCP tools test failed: {str(e)}",
+                        "service": "MusicBrainz MCP Server",
+                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                    }, status_code=500)
+
             # Add health route to the app
             app.routes.append(Route("/health", health_check, methods=["GET"]))
+            app.routes.append(Route("/test", test_tools, methods=["GET"]))
 
             # Add CORS middleware for browser-based clients
             app.add_middleware(
