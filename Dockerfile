@@ -43,5 +43,6 @@ try: \
 except Exception: \
     sys.exit(1)" || exit 1
 
-# Default command
-CMD ["python", "-m", "musicbrainz_mcp.server"]
+# Default command - run server directly with Python path
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+CMD ["python", "-c", "from musicbrainz_mcp.server import main; main()"]
