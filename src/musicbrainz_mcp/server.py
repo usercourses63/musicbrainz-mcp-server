@@ -17,6 +17,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from urllib.parse import parse_qsl
+
 import uvicorn
 from fastmcp import FastMCP, Context
 from pydantic import BaseModel, Field
@@ -722,8 +724,31 @@ class ConfigurationMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
+class ConfigurationASGIMiddleware:
+    """ASGI middleware to capture config from query params without touching the body.
 
+    This avoids BaseHTTPMiddleware wrapping which can interfere with streaming (/mcp).
+    """
 
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        try:
+            if scope.get("type") == "http":
+                qs = scope.get("query_string", b"")
+                try:
+                    query_str = qs.decode("utf-8") if isinstance(qs, (bytes, bytearray)) else str(qs)
+                except Exception:
+                    query_str = ""
+                params = dict(parse_qsl(query_str, keep_blank_values=True))
+                cfg = parse_config_from_query_params(params)
+                if cfg:
+                    global _current_config
+                    _current_config = cfg
+        except Exception as e:
+            logger.warning(f"Config ASGI middleware error: {e}")
+        await self.app(scope, receive, send)
 
 def create_http_app_for_tests():
     """
@@ -760,9 +785,7 @@ def create_http_app_for_tests():
             max_age=86400,
         )
 
-        # Capture config from query params
-        app.add_middleware(ConfigurationMiddleware)
-
+        # Capture config from query params (wrapped after routes registration below)
         # Define endpoints (duplicated minimally for tests)
         async def health_check(request: Request):
             try:
@@ -854,8 +877,11 @@ def create_http_app_for_tests():
         app.routes.append(Route("/health", health_check, methods=["GET"]))
         app.routes.append(Route("/test", test_tools, methods=["GET"]))
         app.routes.append(Route("/tools", list_tools_endpoint, methods=["GET"]))
+        # Wrap with config ASGI middleware after routes are bound
+        app = ConfigurationASGIMiddleware(app)
         return app
     except Exception:
+
         logger.exception("Failed to build HTTP app for tests")
         raise
 
@@ -1135,7 +1161,7 @@ def main():
             )
 
             # Add configuration middleware to parse query parameters
-            app.add_middleware(ConfigurationMiddleware)
+            app = ConfigurationASGIMiddleware(app)
 
             # Configure uvicorn with proper settings for container deployment
             config = uvicorn.Config(
