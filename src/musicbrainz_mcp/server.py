@@ -87,13 +87,23 @@ def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, An
             logger.warning(f"Failed to parse config param: {e}")
 
     # 2) Also check for flat parameters (Smithery session-config style)
-    if 'user_agent' in query_params:
+    # Support both old and new field names for backward compatibility
+    if 'musicbrainzUserAgent' in query_params:
+        cfg['musicbrainzUserAgent'] = query_params.get('musicbrainzUserAgent')
+    elif 'user_agent' in query_params:
         cfg['user_agent'] = query_params.get('user_agent')
-    if 'rate_limit' in query_params:
+
+    if 'rateLimit' in query_params:
+        try:
+            cfg['rateLimit'] = float(query_params.get('rateLimit'))
+        except (TypeError, ValueError):
+            logger.warning("Invalid rateLimit provided; ignoring")
+    elif 'rate_limit' in query_params:
         try:
             cfg['rate_limit'] = float(query_params.get('rate_limit'))
         except (TypeError, ValueError):
             logger.warning("Invalid rate_limit provided; ignoring")
+
     if 'timeout' in query_params:
         try:
             cfg['timeout'] = float(query_params.get('timeout'))
@@ -161,6 +171,82 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
         logger.warning("⚠️ Using minimal client configuration for tool discovery")
 
     return _client
+
+
+def _resolve_cfg(ctx: Context) -> tuple[str, float, float]:
+    """
+    Resolve configuration from session config, query parameters, or environment variables.
+
+    This function implements the proper Smithery.ai configuration resolution order:
+    1. Session config (passed by Smithery.ai during tool execution)
+    2. Global config from middleware (query parameters)
+    3. Environment variables
+    4. Sensible defaults
+
+    Args:
+        ctx: FastMCP context containing session_config
+
+    Returns:
+        Tuple of (user_agent, rate_limit, timeout)
+    """
+    # Start with session config (highest priority for Smithery.ai)
+    session_cfg = ctx.session_config or {}
+
+    # Fallback to global config from middleware
+    global_cfg = _current_config or {}
+
+    # Resolve user agent
+    user_agent = (
+        session_cfg.get("musicbrainzUserAgent") or
+        session_cfg.get("user_agent") or  # Support both naming conventions
+        global_cfg.get("user_agent") or
+        os.getenv("MUSICBRAINZ_USER_AGENT") or
+        "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
+    )
+
+    # Resolve rate limit
+    rate_limit = float(
+        session_cfg.get("rateLimit") or
+        session_cfg.get("rate_limit") or
+        global_cfg.get("rate_limit") or
+        os.getenv("MUSICBRAINZ_RATE_LIMIT", "1.0")
+    )
+
+    # Resolve timeout
+    timeout = float(
+        session_cfg.get("timeout") or
+        global_cfg.get("timeout") or
+        os.getenv("MUSICBRAINZ_TIMEOUT", "30.0")
+    )
+
+    return user_agent, rate_limit, timeout
+
+
+async def get_session_client(ctx: Context) -> MusicBrainzClient:
+    """
+    Get a MusicBrainz client configured with session-specific settings.
+
+    This function creates a client using the proper configuration resolution order
+    for Smithery.ai compatibility.
+
+    Args:
+        ctx: FastMCP context containing session_config
+
+    Returns:
+        Configured MusicBrainzClient instance
+    """
+    user_agent, rate_limit, timeout = _resolve_cfg(ctx)
+
+    # Create a session-specific client
+    client = MusicBrainzClient(
+        user_agent=user_agent,
+        rate_limit=rate_limit,
+        timeout=timeout
+    )
+
+    # Initialize the client
+    await client.__aenter__()
+    return client
 
 
 async def get_client(config: Optional[Dict[str, Any]] = None) -> MusicBrainzClient:
@@ -248,12 +334,15 @@ async def search_artist(params: SearchParams, ctx: Context) -> Dict[str, Any]:
     try:
         await ctx.info(f"Searching for artists: '{params.query}'")
 
-        client = await get_client()
-        results = await client.search_artist(
-            query=params.query,
-            limit=params.limit,
-            offset=params.offset
-        )
+        client = await get_session_client(ctx)
+        try:
+            results = await client.search_artist(
+                query=params.query,
+                limit=params.limit,
+                offset=params.offset
+            )
+        finally:
+            await client.close()
 
         # Parse results using our response parser
         search_result = ResponseParser.parse_search_response(results, "artist")
@@ -1410,9 +1499,10 @@ def main():
                 CORSMiddleware,
                 allow_origins=["*"],
                 allow_credentials=True,
-                allow_methods=["GET", "POST", "OPTIONS"],
+                allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
                 allow_headers=["*"],
                 expose_headers=[
+                    "Mcp-Session-Id",  # Critical for Smithery.ai inspector
                     "mcp-session-id",
                     "mcp-protocol-version",
                     "x-mcp-server",

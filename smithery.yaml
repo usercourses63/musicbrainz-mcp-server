@@ -7,14 +7,14 @@ startCommand:
     type: "object"
     additionalProperties: false
     properties:
-      user_agent:
+      musicbrainzUserAgent:
         type: "string"
-        title: "User Agent"
-        description: "User agent string for MusicBrainz API compliance. Format: AppName/Version (contact@email.com). If not provided, a default will be used for tool discovery."
+        title: "MusicBrainz User Agent"
+        description: "Required by MusicBrainz API. Format: AppName/Version (contact@email.com). If not provided, a default will be used for tool discovery."
         default: "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
         pattern: "^.+/.+\\s+\\(.+@.+\\)$"
         examples: ["MyApp/1.0.0 (contact@example.com)", "SmitheryMusicBrainz/1.0.0 (demo@smithery.ai)"]
-      rate_limit:
+      rateLimit:
         type: "number"
         title: "Rate Limit"
         description: "API rate limit in requests per second (default: 1.0, recommended max: 2.0)"
@@ -30,8 +30,8 @@ startCommand:
         maximum: 120.0
     required: []  # Make all fields optional for scanning phase
   exampleConfig:
-    user_agent: "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
-    rate_limit: 1.0
+    musicbrainzUserAgent: "SmitheryMusicBrainz/1.1.0 (smithery@musicbrainz-mcp.com)"
+    rateLimit: 1.0
     timeout: 30.0
 
 build:

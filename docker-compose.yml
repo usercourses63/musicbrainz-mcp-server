@@ -4,8 +4,9 @@ services:
   musicbrainz-mcp:
     build: .
     ports:
-      - "8000:8000"
+      - "8081:8081"
     environment:
+      - PORT=8081
       - MUSICBRAINZ_USER_AGENT=DockerMusicBrainzMCP/1.0.0
       - MUSICBRAINZ_RATE_LIMIT=1.0
       - MUSICBRAINZ_TIMEOUT=10.0
@@ -17,7 +18,7 @@ services:
       - ./config.json:/app/config.json:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8081/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -27,8 +28,9 @@ services:
   musicbrainz-mcp-dev:
     build: .
     ports:
-      - "8001:8000"
+      - "8082:8082"
     environment:
+      - PORT=8082
       - MUSICBRAINZ_USER_AGENT=DevMusicBrainzMCP/1.0.0
       - MUSICBRAINZ_RATE_LIMIT=2.0
       - MUSICBRAINZ_TIMEOUT=5.0
@@ -39,6 +41,6 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
       - ./config.json:/app/config.json:ro
-    command: ["python", "-m", "musicbrainz_mcp.main", "--reload"]
+    command: ["python", "-c", "from musicbrainz_mcp.server import main; main()"]
     profiles:
       - dev
