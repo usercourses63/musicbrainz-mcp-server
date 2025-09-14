@@ -106,12 +106,12 @@ def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
     else:
         logger.info(f"Using default configuration for tool discovery: user_agent={user_agent}")
 
-    if _client is None:
-        _client = MusicBrainzClient(
-            user_agent=user_agent,
-            rate_limit=rate_limit,
-            timeout=timeout
-        )
+    # Always create/update the client with current configuration
+    _client = MusicBrainzClient(
+        user_agent=user_agent,
+        rate_limit=rate_limit,
+        timeout=timeout
+    )
 
     return _client
 
@@ -756,6 +756,11 @@ def main():
             app = mcp.http_app()
             logger.info("✅ FastMCP HTTP app created successfully")
 
+            # Initialize MusicBrainz client with default configuration for tool discovery
+            logger.info("🔧 Initializing MusicBrainz client with default configuration...")
+            configure_client_from_env()
+            logger.info("✅ MusicBrainz client initialized successfully")
+
             # Add request logging middleware for debugging
             from starlette.middleware.base import BaseHTTPMiddleware
             from starlette.requests import Request
@@ -830,6 +835,14 @@ def main():
                     # Test that we can create a client with default configuration
                     test_client = await get_client()
 
+                    # Test basic client functionality
+                    client_info = {
+                        "user_agent": test_client.user_agent,
+                        "rate_limit": test_client.rate_limit,
+                        "timeout": test_client.timeout,
+                        "is_configured": test_client is not None
+                    }
+
                     return JSONResponse({
                         "status": "success",
                         "message": "MCP tools are functional",
@@ -842,7 +855,7 @@ def main():
                             "browse_artist_releases", "browse_artist_recordings",
                             "lookup_by_mbid"
                         ],
-                        "client_configured": test_client is not None,
+                        "client_info": client_info,
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     })
                 except Exception as e:
