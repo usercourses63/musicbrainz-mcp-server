@@ -52,32 +52,46 @@ start_time = time.time()
 
 def parse_config_from_query_params(query_params: Dict[str, str]) -> Dict[str, Any]:
     """
-    Parse base64-encoded configuration from query parameters.
+    Parse configuration from query parameters.
+
+    Supports both:
+    - Base64-encoded JSON in `config` param (legacy/convenience)
+    - Flat query params as per Smithery session-config (e.g., user_agent, rate_limit, timeout)
 
     Args:
         query_params: Dictionary of query parameters from HTTP request
 
     Returns:
         Dictionary of parsed configuration values
-
-    Raises:
-        ValueError: If configuration parsing fails
     """
+    # 1) Prefer explicit flat params (Smithery passes these directly)
+    cfg: Dict[str, Any] = {}
+    if 'user_agent' in query_params:
+        cfg['user_agent'] = query_params.get('user_agent')
+    if 'rate_limit' in query_params:
+        try:
+            cfg['rate_limit'] = float(query_params.get('rate_limit'))
+        except (TypeError, ValueError):
+            logger.warning("Invalid rate_limit provided; ignoring")
+    if 'timeout' in query_params:
+        try:
+            cfg['timeout'] = float(query_params.get('timeout'))
+        except (TypeError, ValueError):
+            logger.warning("Invalid timeout provided; ignoring")
+
+    # 2) Fallback: base64-encoded JSON in `config`
     config_param = query_params.get('config')
-    if not config_param:
-        return {}
+    if config_param:
+        try:
+            config_data = base64.b64decode(config_param).decode('utf-8')
+            parsed_config = json.loads(config_data)
+            cfg.update(parsed_config or {})
+        except (binascii.Error, json.JSONDecodeError, UnicodeDecodeError) as e:
+            logger.warning(f"Failed to parse base64 config param: {e}")
 
-    try:
-        # Decode base64-encoded configuration
-        config_data = base64.b64decode(config_param).decode('utf-8')
-        parsed_config = json.loads(config_data)
-
-        logger.debug(f"Parsed configuration from query parameters: {parsed_config}")
-        return parsed_config
-
-    except (binascii.Error, json.JSONDecodeError, UnicodeDecodeError) as e:
-        logger.warning(f"Failed to parse configuration from query parameters: {e}")
-        return {}
+    if cfg:
+        logger.debug(f"Parsed configuration from query parameters: {cfg}")
+    return cfg
 
 
 def configure_client_from_env(config: Optional[Dict[str, Any]] = None):
@@ -184,41 +198,41 @@ class GenericLookupParams(BaseModel):
 async def search_artist(params: SearchParams, ctx: Context) -> Dict[str, Any]:
     """
     Search for artists by name or query string.
-    
+
     This tool searches the MusicBrainz database for artists matching the provided query.
     Results include artist names, MBIDs, types, countries, and other metadata.
-    
+
     Args:
         params: Search parameters including query, limit, and offset
         ctx: MCP context for logging and progress reporting
-        
+
     Returns:
         Search results containing artists and pagination metadata
-        
+
     Example:
         search_artist({"query": "The Beatles", "limit": 10})
     """
     try:
         await ctx.info(f"Searching for artists: '{params.query}'")
-        
+
         client = await get_client()
         results = await client.search_artist(
             query=params.query,
             limit=params.limit,
             offset=params.offset
         )
-        
+
         # Parse results using our response parser
         search_result = ResponseParser.parse_search_response(results, "artist")
-        
+
         await ctx.info(f"Found {search_result.count} artists")
-        
+
         return {
             "count": search_result.count,
             "offset": search_result.offset,
             "artists": [artist.model_dump() for artist in (search_result.artists or [])]
         }
-        
+
     except MusicBrainzError as e:
         await ctx.error(f"MusicBrainz API error: {e}")
         raise
@@ -231,41 +245,41 @@ async def search_artist(params: SearchParams, ctx: Context) -> Dict[str, Any]:
 async def search_release(params: SearchParams, ctx: Context) -> Dict[str, Any]:
     """
     Search for releases (albums, singles, etc.) by title or query string.
-    
+
     This tool searches the MusicBrainz database for releases matching the provided query.
     Results include release titles, MBIDs, artist credits, dates, and other metadata.
-    
+
     Args:
         params: Search parameters including query, limit, and offset
         ctx: MCP context for logging and progress reporting
-        
+
     Returns:
         Search results containing releases and pagination metadata
-        
+
     Example:
         search_release({"query": "Abbey Road", "limit": 10})
     """
     try:
         await ctx.info(f"Searching for releases: '{params.query}'")
-        
+
         client = await get_client()
         results = await client.search_release(
             query=params.query,
             limit=params.limit,
             offset=params.offset
         )
-        
+
         # Parse results using our response parser
         search_result = ResponseParser.parse_search_response(results, "release")
-        
+
         await ctx.info(f"Found {search_result.count} releases")
-        
+
         return {
             "count": search_result.count,
             "offset": search_result.offset,
             "releases": [release.model_dump() for release in (search_result.releases or [])]
         }
-        
+
     except MusicBrainzError as e:
         await ctx.error(f"MusicBrainz API error: {e}")
         raise
@@ -278,41 +292,41 @@ async def search_release(params: SearchParams, ctx: Context) -> Dict[str, Any]:
 async def search_recording(params: SearchParams, ctx: Context) -> Dict[str, Any]:
     """
     Search for recordings (individual tracks) by title or query string.
-    
+
     This tool searches the MusicBrainz database for recordings matching the provided query.
     Results include recording titles, MBIDs, artist credits, lengths, and other metadata.
-    
+
     Args:
         params: Search parameters including query, limit, and offset
         ctx: MCP context for logging and progress reporting
-        
+
     Returns:
         Search results containing recordings and pagination metadata
-        
+
     Example:
         search_recording({"query": "Come Together", "limit": 10})
     """
     try:
         await ctx.info(f"Searching for recordings: '{params.query}'")
-        
+
         client = await get_client()
         results = await client.search_recording(
             query=params.query,
             limit=params.limit,
             offset=params.offset
         )
-        
+
         # Parse results using our response parser
         search_result = ResponseParser.parse_search_response(results, "recording")
-        
+
         await ctx.info(f"Found {search_result.count} recordings")
-        
+
         return {
             "count": search_result.count,
             "offset": search_result.offset,
             "recordings": [recording.model_dump() for recording in (search_result.recordings or [])]
         }
-        
+
     except MusicBrainzError as e:
         await ctx.error(f"MusicBrainz API error: {e}")
         raise
@@ -325,41 +339,41 @@ async def search_recording(params: SearchParams, ctx: Context) -> Dict[str, Any]
 async def search_release_group(params: SearchParams, ctx: Context) -> Dict[str, Any]:
     """
     Search for release groups by title or query string.
-    
+
     This tool searches the MusicBrainz database for release groups matching the provided query.
     Results include release group titles, MBIDs, artist credits, types, and other metadata.
-    
+
     Args:
         params: Search parameters including query, limit, and offset
         ctx: MCP context for logging and progress reporting
-        
+
     Returns:
         Search results containing release groups and pagination metadata
-        
+
     Example:
         search_release_group({"query": "Sgt. Pepper's Lonely Hearts Club Band", "limit": 10})
     """
     try:
         await ctx.info(f"Searching for release groups: '{params.query}'")
-        
+
         client = await get_client()
         results = await client.search_release_group(
             query=params.query,
             limit=params.limit,
             offset=params.offset
         )
-        
+
         # Parse results using our response parser
         search_result = ResponseParser.parse_search_response(results, "release-group")
-        
+
         await ctx.info(f"Found {search_result.count} release groups")
-        
+
         return {
             "count": search_result.count,
             "offset": search_result.offset,
             "release_groups": [rg.model_dump() for rg in (search_result.release_groups or [])]
         }
-        
+
     except MusicBrainzError as e:
         await ctx.error(f"MusicBrainz API error: {e}")
         raise
@@ -707,6 +721,142 @@ class ConfigurationMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
+
+
+
+def create_http_app_for_tests():
+    """
+    Build a fully configured HTTP app (without binding a socket) for local smoke tests.
+
+    This mirrors the production HTTP setup used in main():
+    - FastMCP HTTP app
+    - CORS + Configuration middleware
+    - Default client initialization
+    - Health, test, and tools endpoints
+    """
+    try:
+        # Create base FastMCP app
+        from starlette.responses import JSONResponse
+        from starlette.routing import Route
+        app = mcp.http_app()
+
+        # Default client for discovery
+        configure_client_from_env()
+
+        # Add CORS middleware
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=[
+                "mcp-session-id",
+                "mcp-protocol-version",
+                "x-mcp-server",
+                "x-request-id",
+            ],
+            max_age=86400,
+        )
+
+        # Capture config from query params
+        app.add_middleware(ConfigurationMiddleware)
+
+        # Define endpoints (duplicated minimally for tests)
+        async def health_check(request: Request):
+            try:
+                health_data = {
+                    "status": "healthy",
+                    "service": "MusicBrainz MCP Server",
+                    "version": "1.1.0",
+                    "tools_count": 10,
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "uptime_seconds": time.time() - start_time,
+                }
+                # Quick readiness heuristic
+                health_data["tools_available"] = 10
+                health_data["ready"] = True
+                return JSONResponse(health_data, status_code=200)
+            except Exception as e:
+                return JSONResponse({
+                    "status": "unhealthy",
+                    "service": "MusicBrainz MCP Server",
+                    "error": str(e),
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                }, status_code=503)
+
+        async def test_tools(request: Request):
+            try:
+                test_client = await get_client()
+                client_info = {
+                    "user_agent": getattr(test_client, "user_agent", None),
+                    "rate_limit": getattr(test_client, "rate_limit", None),
+                    "timeout": getattr(test_client, "timeout", None),
+                    "is_configured": test_client is not None,
+                }
+                return JSONResponse({
+                    "status": "success",
+                    "message": "MCP tools are functional",
+                    "service": "MusicBrainz MCP Server",
+                    "version": "1.1.0",
+                    "tools_available": [
+                        "search_artist", "search_release", "search_recording",
+                        "search_release_group", "get_artist_details",
+                        "get_release_details", "get_recording_details",
+                        "browse_artist_releases", "browse_artist_recordings",
+                        "lookup_by_mbid",
+                    ],
+                    "client_info": client_info,
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                })
+            except Exception as e:
+                return JSONResponse({
+                    "status": "error",
+                    "message": f"MCP tools test failed: {str(e)}",
+                    "service": "MusicBrainz MCP Server",
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                }, status_code=500)
+
+        async def list_tools_endpoint(request: Request):
+            try:
+                config = parse_config_from_query_params(dict(request.query_params))
+                configure_client_from_env(config)
+                await get_client(config)
+                tools_info = [
+                    {"name": "search_artist", "description": "Search for artists by name or query string", "category": "search"},
+                    {"name": "search_release", "description": "Search for releases (albums, singles, etc.) by title", "category": "search"},
+                    {"name": "search_recording", "description": "Search for recordings (individual tracks) by title", "category": "search"},
+                    {"name": "search_release_group", "description": "Search for release groups by title", "category": "search"},
+                    {"name": "get_artist_details", "description": "Get detailed information about a specific artist by MBID", "category": "lookup"},
+                    {"name": "get_release_details", "description": "Get detailed information about a specific release by MBID", "category": "lookup"},
+                    {"name": "get_recording_details", "description": "Get detailed information about a specific recording by MBID", "category": "lookup"},
+                    {"name": "browse_artist_releases", "description": "Browse releases for a specific artist by MBID", "category": "browse"},
+                    {"name": "browse_artist_recordings", "description": "Browse recordings for a specific artist by MBID", "category": "browse"},
+                    {"name": "lookup_by_mbid", "description": "Generic lookup for any entity type by MBID", "category": "lookup"},
+                ]
+                return JSONResponse({
+                    "status": "success",
+                    "service": "MusicBrainz MCP Server",
+                    "version": "1.1.0",
+                    "tools": tools_info,
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                })
+            except Exception as e:
+                return JSONResponse({
+                    "status": "error",
+                    "message": f"Tools listing failed: {str(e)}",
+                    "service": "MusicBrainz MCP Server",
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                }, status_code=500)
+
+        # Register routes
+        app.routes.append(Route("/health", health_check, methods=["GET"]))
+        app.routes.append(Route("/test", test_tools, methods=["GET"]))
+        app.routes.append(Route("/tools", list_tools_endpoint, methods=["GET"]))
+        return app
+    except Exception:
+        logger.exception("Failed to build HTTP app for tests")
+        raise
 
 def main():
     """
