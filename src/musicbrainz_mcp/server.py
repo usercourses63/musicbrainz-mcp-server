@@ -717,6 +717,11 @@ class ConfigurationMiddleware(BaseHTTPMiddleware):
         # Store configuration in request state as well
         request.state.config = config
 
+        # Avoid any potential interference with MCP streaming endpoints
+        # by immediately delegating to the underlying route for /mcp paths.
+        if str(request.url.path).startswith("/mcp"):
+            return await call_next(request)
+
         # Continue to next middleware/endpoint
         response = await call_next(request)
         return response
@@ -911,21 +916,24 @@ def main():
             configure_client_from_env()
             logger.info("✅ MusicBrainz client initialized successfully")
 
-            # Add request logging middleware for debugging
+            # Add optional request logging middleware for debugging (disabled by default)
             from starlette.middleware.base import BaseHTTPMiddleware
             from starlette.requests import Request
             from starlette.responses import Response
 
             class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 async def dispatch(self, request: Request, call_next):
-                    # Log all incoming requests for debugging
-                    logger.info(f"🔍 Request: {request.method} {request.url}")
-                    logger.info(f"🔍 Headers: {dict(request.headers)}")
-                    if request.query_params:
-                        logger.info(f"🔍 Query params: {dict(request.query_params)}")
-
+                    # Avoid interfering with MCP streamable endpoints
+                    if str(request.url.path).startswith("/mcp"):
+                        return await call_next(request)
+                    if os.getenv("ENABLE_REQUEST_LOGGING") == "1":
+                        logger.info(f"🔍 Request: {request.method} {request.url}")
+                        logger.info(f"🔍 Headers: {dict(request.headers)}")
+                        if request.query_params:
+                            logger.info(f"🔍 Query params: {dict(request.query_params)}")
                     response = await call_next(request)
-                    logger.info(f"🔍 Response status: {response.status_code}")
+                    if os.getenv("ENABLE_REQUEST_LOGGING") == "1":
+                        logger.info(f"🔍 Response status: {response.status_code}")
                     return response
 
             # Add health check endpoint
@@ -1108,8 +1116,9 @@ def main():
             app.routes.append(Route("/test", test_tools, methods=["GET"]))
             app.routes.append(Route("/tools", list_tools_endpoint, methods=["GET"]))
 
-            # Add request logging middleware for debugging
-            app.add_middleware(RequestLoggingMiddleware)
+            # Add request logging middleware only when explicitly enabled
+            if os.getenv("ENABLE_REQUEST_LOGGING") == "1":
+                app.add_middleware(RequestLoggingMiddleware)
 
             # Add CORS middleware for browser-based clients
             app.add_middleware(
