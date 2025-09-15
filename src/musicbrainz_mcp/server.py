@@ -850,14 +850,36 @@ async def handle_mcp_init(request: Request):
         elif data.get("method") == "tools/list":
             logger.info("🔧 Handling MCP tools/list request from Smithery.ai scanner")
 
-            # Ensure we have a client configured for tool discovery
+            # Get the actual registered tools from FastMCP instance
             try:
-                await get_client()
-            except Exception as e:
-                logger.warning(f"Client not configured for tool discovery, using defaults: {e}")
-                configure_client_from_env()
+                # Ensure we have a client configured for tool discovery
+                try:
+                    await get_client()
+                except Exception as e:
+                    logger.warning(f"Client not configured for tool discovery, using defaults: {e}")
+                    configure_client_from_env()
 
-            tools = [
+                # Get the actual registered tools from FastMCP instance
+                registered_tools = await mcp.get_tools()
+
+                # Convert FastMCP tools to MCP protocol format
+                tools = []
+                for tool_name, tool in registered_tools.items():
+                    mcp_tool = tool.to_mcp_tool()
+                    # Convert to dict format expected by MCP protocol
+                    tool_dict = {
+                        "name": mcp_tool.name,
+                        "description": mcp_tool.description,
+                        "inputSchema": mcp_tool.inputSchema
+                    }
+                    tools.append(tool_dict)
+
+                logger.info(f"🔍 Retrieved {len(tools)} tools from FastMCP instance")
+
+            except Exception as e:
+                logger.error(f"❌ Failed to get tools from FastMCP instance: {e}")
+                # Fallback to hardcoded tools list for compatibility
+                tools = [
                 {
                     "name": "search_artist",
                     "description": "Search for artists by name or query string",
@@ -985,7 +1007,8 @@ async def handle_mcp_init(request: Request):
                         "required": ["mbid", "entity_type"]
                     }
                 }
-            ]
+                ]
+                logger.warning(f"⚠️ Using fallback hardcoded tools list due to error: {e}")
 
             response = {
                 "jsonrpc": "2.0",
