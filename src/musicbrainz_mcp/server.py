@@ -190,7 +190,15 @@ def _resolve_cfg(ctx: Context) -> tuple[str, float, float]:
         Tuple of (user_agent, rate_limit, timeout)
     """
     # Start with session config (highest priority for Smithery.ai)
-    session_cfg = ctx.session_config or {}
+    # Check if context has session with config
+    session_cfg = {}
+    if hasattr(ctx, 'session') and ctx.session:
+        if hasattr(ctx.session, 'config'):
+            session_cfg = ctx.session.config or {}
+        elif hasattr(ctx.session, 'session_config'):
+            session_cfg = ctx.session.session_config or {}
+    elif hasattr(ctx, 'session_config'):
+        session_cfg = ctx.session_config or {}
 
     # Fallback to global config from middleware
     global_cfg = _current_config or {}
@@ -1020,6 +1028,94 @@ async def handle_mcp_init(request: Request):
             logger.info(f"✅ MCP tools/list response sent successfully with {len(tools)} tools")
             return JSONResponse(response)
 
+        # Check if this is a tools/call request
+        elif data.get("method") == "tools/call":
+            logger.info("🔧 Handling MCP tools/call request")
+
+            try:
+                # Extract tool call parameters
+                params = data.get("params", {})
+                tool_name = params.get("name")
+                arguments = params.get("arguments", {})
+
+                if not tool_name:
+                    return JSONResponse({
+                        "jsonrpc": "2.0",
+                        "id": data.get("id", 1),
+                        "error": {
+                            "code": -32602,
+                            "message": "Invalid params: missing tool name"
+                        }
+                    }, status_code=200)
+
+                logger.info(f"🔧 Calling tool: {tool_name} with arguments: {arguments}")
+
+                # Get the registered tools from FastMCP
+                registered_tools = await mcp.get_tools()
+
+                if tool_name not in registered_tools:
+                    return JSONResponse({
+                        "jsonrpc": "2.0",
+                        "id": data.get("id", 1),
+                        "error": {
+                            "code": -32601,
+                            "message": f"Tool not found: {tool_name}"
+                        }
+                    }, status_code=200)
+
+                # Get the tool and execute it
+                tool = registered_tools[tool_name]
+
+                # Create a context for the tool call
+                # We need to create a minimal context that includes session config
+                class MockContext:
+                    def __init__(self, session_config=None):
+                        self.session_config = session_config or {}
+
+                    async def info(self, message: str):
+                        logger.info(f"Tool {tool_name}: {message}")
+
+                    async def error(self, message: str):
+                        logger.error(f"Tool {tool_name}: {message}")
+
+                # Parse session config from request if available
+                session_config = {}
+                if hasattr(request, 'query_params'):
+                    session_config = parse_config_from_query_params(dict(request.query_params))
+
+                ctx = MockContext(session_config)
+
+                # Execute the tool - FastMCP handles context internally
+                result = await tool.run(arguments)
+
+                # Format the response in MCP format
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": data.get("id", 1),
+                    "result": {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(result) if not isinstance(result, str) else result
+                            }
+                        ]
+                    }
+                }
+
+                logger.info(f"✅ Tool {tool_name} executed successfully")
+                return JSONResponse(response)
+
+            except Exception as e:
+                logger.error(f"❌ Error executing tool {tool_name}: {e}")
+                return JSONResponse({
+                    "jsonrpc": "2.0",
+                    "id": data.get("id", 1),
+                    "error": {
+                        "code": -32603,
+                        "message": f"Tool execution error: {str(e)}"
+                    }
+                }, status_code=200)
+
         # For other methods, return a proper JSON-RPC error response
         method = data.get('method', 'unknown')
         logger.info(f"🔄 Unknown method '{method}' - returning method not found error")
@@ -1504,9 +1600,9 @@ def main():
                         "timestamp": datetime.utcnow().isoformat() + "Z"
                     }, status_code=500)
 
-            # Add MCP initialization route BEFORE other routes for Smithery.ai scanning
+            # FastMCP automatically provides /mcp endpoint - no need to override it
+            # Let FastMCP handle MCP protocol natively for proper tool execution
             from starlette.routing import Route
-            app.routes.insert(0, Route("/mcp", handle_mcp_init, methods=["POST"]))
 
             # Add health route to the app
             app.routes.append(Route("/health", health_check, methods=["GET"]))
