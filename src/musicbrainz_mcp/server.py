@@ -28,6 +28,16 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
 from .musicbrainz_client import MusicBrainzClient
+
+# Server startup time for health checks
+_server_start_time = time.time()
+
+# Check for optional dependencies
+try:
+    import psutil
+    _has_psutil = True
+except ImportError:
+    _has_psutil = False
 from .models import Artist, Release, Recording, ReleaseGroup, SearchResult, BrowseResult
 from .schemas import ResponseParser, ValidationHelpers
 from .exceptions import MusicBrainzError
@@ -1431,45 +1441,176 @@ def main():
 
             async def health_check(request):
                 """
-                Comprehensive health check following MCP best practices.
-                Returns 200 for healthy, 503 for not ready.
+                Basic health check endpoint - confirms server is running.
+                Used by load balancers for liveness probes.
                 """
                 try:
-                    # Basic liveness check
-                    health_data = {
+                    return JSONResponse({
                         "status": "healthy",
-                        "service": "MusicBrainz MCP Server",
-                        "version": "1.1.0",
-                        "tools_count": 10,
-                        "timestamp": datetime.utcnow().isoformat() + "Z",
-                        "uptime_seconds": time.time() - start_time
-                    }
-
-                    # Check if MCP app is accessible (readiness check)
-                    try:
-                        # Verify that our MCP tools are available
-                        tools = [
-                            "search_artist", "search_release", "search_recording",
-                            "search_release_group", "get_artist_details",
-                            "get_release_details", "get_recording_details",
-                            "browse_artist_releases", "browse_artist_recordings",
-                            "lookup_by_mbid"
-                        ]
-                        health_data["tools_available"] = len(tools)
-                        health_data["ready"] = True
-
-                        return JSONResponse(health_data, status_code=200)
-                    except Exception as e:
-                        health_data["ready"] = False
-                        health_data["error"] = f"MCP tools not ready: {str(e)}"
-                        return JSONResponse(health_data, status_code=503)
-
+                        "service": "musicbrainz-mcp-server",
+                        "version": "1.1.4",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "uptime": time.time() - _server_start_time,
+                        "pid": os.getpid()
+                    }, status_code=200)
                 except Exception as e:
+                    logger.error(f"Health check failed: {e}")
                     return JSONResponse({
                         "status": "unhealthy",
-                        "service": "MusicBrainz MCP Server",
+                        "service": "musicbrainz-mcp-server",
                         "error": str(e),
-                        "timestamp": datetime.utcnow().isoformat() + "Z"
+                        "timestamp": datetime.utcnow().isoformat()
+                    }, status_code=503)
+
+            async def liveness_check(request):
+                """
+                Kubernetes-compatible liveness probe.
+                Confirms the process is running and not deadlocked.
+                """
+                return JSONResponse({
+                    "status": "alive",
+                    "pid": os.getpid(),
+                    "uptime": time.time() - _server_start_time,
+                    "memory": {
+                        "rss": psutil.Process().memory_info().rss,
+                        "vms": psutil.Process().memory_info().vms
+                    } if _has_psutil else None
+                }, status_code=200)
+
+            async def readiness_check(request):
+                """
+                Comprehensive readiness check for Smithery.ai scanning.
+                Validates MCP functionality, tools, and dependencies.
+                """
+                try:
+                    # Get configuration from query parameters (for testing)
+                    query_params = dict(request.query_params)
+
+                    # Extract configuration
+                    user_agent = query_params.get("musicbrainzUserAgent", "SmitheryHealthCheck/1.1.4 (smithery@musicbrainz-mcp.com)")
+                    rate_limit = float(query_params.get("rateLimit", "1.0"))
+                    timeout = float(query_params.get("timeout", "10.0"))
+
+                    # Check MCP server functionality
+                    mcp_tools = await mcp.get_tools()
+                    mcp_healthy = len(mcp_tools) >= 10  # Should have all 10 tools
+
+                    # Test MusicBrainz API connectivity (optional for scanning)
+                    api_healthy = True  # Default to healthy for scanning
+                    api_response_time = 0
+                    try:
+                        import httpx
+                        start_time = time.time()
+                        test_url = "https://musicbrainz.org/ws/2/artist/b10bbbfc-cf9e-42e0-be17-e2c3e1d2600d"
+                        headers = {"User-Agent": user_agent}
+
+                        async with httpx.AsyncClient(timeout=5.0) as client:  # Short timeout for scanning
+                            response = await client.get(test_url, headers=headers)
+                            api_healthy = response.status_code == 200
+                            api_response_time = (time.time() - start_time) * 1000  # ms
+                    except Exception as e:
+                        logger.debug(f"API connectivity check failed (non-critical): {e}")
+                        # API failure is not critical for scanning phase
+
+                    # Comprehensive health checks
+                    checks = {
+                        "mcp_server": {
+                            "status": "healthy" if mcp_healthy else "unhealthy",
+                            "tools_count": len(mcp_tools),
+                            "expected_tools": 10,
+                            "message": f"MCP server has {len(mcp_tools)} tools registered"
+                        },
+                        "musicbrainz_api": {
+                            "status": "healthy" if api_healthy else "degraded",
+                            "response_time_ms": api_response_time,
+                            "message": "MusicBrainz API connectivity test (optional for scanning)"
+                        },
+                        "fastmcp_integration": {
+                            "status": "healthy" if hasattr(mcp, 'get_tools') else "unhealthy",
+                            "message": "FastMCP integration working"
+                        }
+                    }
+
+                    # Overall readiness - only require MCP functionality for scanning
+                    critical_checks = ["mcp_server", "fastmcp_integration"]
+                    ready = all(checks[check]["status"] == "healthy" for check in critical_checks)
+
+                    # Detailed status
+                    status = {
+                        "ready": ready,
+                        "status": "ready" if ready else "not_ready",
+                        "service": "musicbrainz-mcp-server",
+                        "version": "1.1.4",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "checks": checks,
+                        "configuration": {
+                            "user_agent": user_agent,
+                            "rate_limit": rate_limit,
+                            "timeout": timeout
+                        },
+                        "tools": [tool_name for tool_name in mcp_tools.keys()] if mcp_healthy else []
+                    }
+
+                    return JSONResponse(status, status_code=200 if ready else 503)
+
+                except Exception as e:
+                    logger.error(f"Readiness check failed: {e}")
+                    return JSONResponse({
+                        "ready": False,
+                        "status": "error",
+                        "service": "musicbrainz-mcp-server",
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }, status_code=503)
+
+            async def startup_check(request):
+                """
+                Kubernetes-compatible startup probe.
+                Handles slow initialization and startup timeouts.
+                """
+                startup_duration = time.time() - _server_start_time
+                max_startup_time = 60.0  # 60 seconds
+
+                if startup_duration > max_startup_time:
+                    # Check if we're actually ready despite timeout
+                    try:
+                        mcp_tools = await mcp.get_tools()
+                        if len(mcp_tools) >= 10:
+                            return JSONResponse({
+                                "status": "started",
+                                "message": "Server started successfully (slow startup)",
+                                "startup_duration": startup_duration
+                            }, status_code=200)
+                    except:
+                        pass
+
+                    return JSONResponse({
+                        "status": "failed",
+                        "message": "Startup timeout exceeded",
+                        "startup_duration": startup_duration,
+                        "max_startup_time": max_startup_time
+                    }, status_code=503)
+
+                # Check if we're ready
+                try:
+                    mcp_tools = await mcp.get_tools()
+                    if len(mcp_tools) >= 10:
+                        return JSONResponse({
+                            "status": "started",
+                            "startup_duration": startup_duration,
+                            "tools_count": len(mcp_tools)
+                        }, status_code=200)
+                    else:
+                        return JSONResponse({
+                            "status": "starting",
+                            "startup_duration": startup_duration,
+                            "tools_count": len(mcp_tools)
+                        }, status_code=503)
+                except Exception as e:
+                    return JSONResponse({
+                        "status": "starting",
+                        "startup_duration": startup_duration,
+                        "error": str(e)
                     }, status_code=503)
 
             # Add test endpoint for smithery.ai tool scanning
@@ -1604,8 +1745,11 @@ def main():
             # Let FastMCP handle MCP protocol natively for proper tool execution
             from starlette.routing import Route
 
-            # Add health route to the app
+            # Add comprehensive health check routes for Smithery.ai compatibility
             app.routes.append(Route("/health", health_check, methods=["GET"]))
+            app.routes.append(Route("/health/live", liveness_check, methods=["GET"]))
+            app.routes.append(Route("/health/ready", readiness_check, methods=["GET"]))
+            app.routes.append(Route("/health/startup", startup_check, methods=["GET"]))
             app.routes.append(Route("/test", test_tools, methods=["GET"]))
             app.routes.append(Route("/tools", list_tools_endpoint, methods=["GET"]))
 
@@ -1650,7 +1794,11 @@ def main():
             # Create and run server with proper lifecycle management
             server = uvicorn.Server(config)
             logger.info(f"🚀 Server configured for port {port}, starting...")
-            logger.info("🔍 Health check will be available at /health")
+            logger.info("🔍 Health check endpoints available:")
+            logger.info("   /health - Basic health check")
+            logger.info("   /health/live - Liveness probe")
+            logger.info("   /health/ready - Readiness probe (Smithery.ai scanning)")
+            logger.info("   /health/startup - Startup probe")
             logger.info("🔧 MCP endpoint will be available at /mcp")
 
             try:
